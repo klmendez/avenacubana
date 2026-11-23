@@ -6,7 +6,9 @@ import { completeSubmission, submissionIdentity } from '../lib/submission';
 import { supabase } from '../lib/supabase';
 import { waLink, paymentMethodLabel } from '../data/constants';
 import { LocationService } from '../services/locationService';
-import { formatServiceLabel, type OrderItem, type PaymentMethod, type Service } from '../lib/whatsapp';
+import { TOPPINGS } from "../data/toppings";
+import { EXTRAS } from "../data/extras";
+import { buildWhatsAppMessage, formatServiceLabel, type OrderItem, type PaymentMethod, type Service } from '../lib/whatsapp';
 import type { CustomerLocation } from '../types/order';
 import type { AppliedPromotion } from '../types/promotion';
 import type { Barrio } from '../data/barrios';
@@ -81,6 +83,9 @@ export default function CartDrawer({
   const autoSubmitTriggeredRef = useRef(false);
   const submissionLock = useRef(false);
   const [whatsappUrl, setWhatsappUrl] = useState('');
+  useEffect(() => {
+    if (whatsappUrl) window.location.assign(whatsappUrl);
+  }, [whatsappUrl]);
   const [confirmedDetails, setConfirmedDetails] = useState<{ items: (OrderItem & { baseLine: number; line?: number })[]; subtotal: number; delivery: number; total: number; descuentoTotal: number; service: Service; tableNumber: string; address: string; barrio: string; paymentMethod: PaymentMethod } | null>(null);
   const [confirmationPanel, setConfirmationPanel] = useState<'review' | 'details' | null>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
@@ -151,7 +156,6 @@ export default function CartDrawer({
     void handleSubmitOrder();
   };
 
-  // Crear pedido en Firestore
   const handleSubmitOrder = async () => {
     if (submissionLock.current) return;
     if (!validateForm()) {
@@ -211,44 +215,16 @@ export default function CartDrawer({
       await OrderService.createOrder(orderData);
       setConfirmedDetails({ items: structuredClone(items), subtotal, delivery, total, descuentoTotal, service, tableNumber, address, barrio: barrio?.name || '', paymentMethod });
       const receipt = JSON.parse(sessionStorage.getItem('avena-cubana-order-receipt') || '{}');
-      setConfirmedOrderNumber(receipt.order_number || numeroOrden);
-      setWhatsappUrl(waLink(`Hola, registré el pedido ${receipt.order_number || numeroOrden} a nombre de ${name.trim()}. Total: ${cop(total)}. ${formatServiceLabel(service)}. Pago: ${paymentMethodLabel(paymentMethod)}.`));
+      const code = receipt.order_number || numeroOrden;
+      const message = buildWhatsAppMessage({
+        origin: window.location.origin, code, name: orderData.cliente.nombres, phone: orderData.cliente.celular,
+        service, tableNumber, barrio, address, reference, locationLink: orderData.cliente.mapsLink,
+        items, subtotal, delivery, total, descuentoTotal, paymentMethod, comments, birthdayKey,
+        toppingsCatalog: TOPPINGS, extrasCatalog: EXTRAS,
+      });
+      setConfirmedOrderNumber(code);
+      setWhatsappUrl(waLink(message));
       setSubmitStatus('success');
-
-      
-      // Guardar/actualizar cliente en la base de datos
-      try {
-        const clientData: { celular: string; nombres: string; totalPedido: number; direccion?: string; barrio?: string; referencia?: string; fechaNacimiento?: string; correo?: string } = {
-          celular: phone.trim(),
-          nombres: name.trim(),
-          totalPedido: total
-        };
-        
-        // Solo agregar campos opcionales si tienen valor
-        if (service === 'domicilio' && address.trim()) {
-          clientData.direccion = address.trim();
-        }
-        if (barrio?.name) {
-          clientData.barrio = barrio.name;
-        }
-        if (reference?.trim()) {
-          clientData.referencia = reference.trim();
-        }
-        if (birthdayKey) {
-          clientData.fechaNacimiento = birthdayKey;
-        }
-        if (email.trim()) {
-          clientData.correo = email.trim();
-        }
-
-        void clientData; // El RPC de Supabase ya guardó el contacto junto con el pedido.
-        console.log(' Cliente guardado/actualizado correctamente');
-      } catch (clientError) {
-        console.error('❌ Error guardando cliente:', clientError);
-      }
-
-      // Enviar notificación al negocio sobre nuevo pedido
-      // Limpiar carrito después de un delay
       onClearCart();
       completeSubmission('order');
 
@@ -331,7 +307,7 @@ export default function CartDrawer({
               </div>
               <h2 className="mt-3 text-3xl font-semibold text-rojo-dark">¡Recibimos tu pedido!</h2>
               <p className="mx-auto mt-4 max-w-xs text-sm leading-relaxed text-gray-600">
-                Avena Cubana Pop revisará tu orden y se comunicará contigo al número registrado.
+                Tu pedido quedó registrado. Pulsa Enviar en WhatsApp para compartir el detalle con Avena Cubana Pop.
               </p>
               {confirmedOrderNumber && (
                 <div className="mx-auto mt-7 border-y border-rojo/20 px-8 py-4">
@@ -341,7 +317,7 @@ export default function CartDrawer({
               )}
               <div className="mt-auto space-y-3">
                 <div data-hint-slot />
-                {whatsappUrl && <a href={whatsappUrl} target="_blank" rel="noreferrer" className="block w-full border border-rojo px-5 py-3.5 font-semibold text-rojo">Compartir pedido por WhatsApp{!confirmationPanel && <ActionHint step="compartir">Envía una copia por WhatsApp.</ActionHint>}</a>}
+                {whatsappUrl && <a href={whatsappUrl} target="_blank" rel="noreferrer" className="block w-full border border-rojo px-5 py-3.5 font-semibold text-rojo">Abrir pedido en WhatsApp{!confirmationPanel && <ActionHint step="compartir">Envía una copia por WhatsApp.</ActionHint>}</a>}
                 <button type="button" onClick={() => setConfirmationPanel('details')} className="w-full border border-rojo px-5 py-3 text-sm font-semibold text-rojo">Ver detalle de mi pedido</button>
                 <button type="button" onClick={() => setConfirmationPanel('review')} className="w-full border border-rojo px-5 py-3 text-sm font-semibold text-rojo">Dejar reseña</button>
                 <button type="button" onClick={() => { onClose(); window.location.assign('/'); }} className="w-full bg-rojo px-5 py-3.5 text-sm font-semibold text-crema">

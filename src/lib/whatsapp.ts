@@ -1,4 +1,4 @@
-import { paymentMethodLabel } from "../data/constants";
+import { BRAND_NAME, BUSINESS_ADDRESS, NEQUI_PHONE } from "../data/constants";
 import type { Barrio } from "../data/barrios";
 import { cop } from "./format";
 import type { Product, Size, Version } from "../data/products";
@@ -135,10 +135,6 @@ function pickServiceEmoji(service: Service) {
   return "🏠";
 }
 
-function pickCategoryEmoji(product: Product) {
-  return product.category === "gomitas" ? "🌶️" : "🍍";
-}
-
 export function waLink(whatsPhone: string, text: string) {
   const clean = whatsPhone.replace(/\D/g, "");
   return `https://api.whatsapp.com/send?phone=${clean}&text=${encodeURIComponent(text)}`;
@@ -166,6 +162,7 @@ export function buildWhatsAppMessage(args: {
 
   paymentMethod: PaymentMethod;
   comments?: string;
+  tableNumber?: string;
   locationLink?: string;
   descuentoTotal?: number;
   birthdayKey?: string | null;
@@ -188,6 +185,7 @@ export function buildWhatsAppMessage(args: {
     paymentMethod,
     comments,
     locationLink,
+    tableNumber,
     descuentoTotal = 0,
     birthdayKey = null,
   } = args;
@@ -195,10 +193,7 @@ export function buildWhatsAppMessage(args: {
   const serviceLabel = formatServiceLabel(service);
   const barrioLine = formatBarrioLine(service, barrio);
   const addressLine = formatAddressLine(service, address, reference);
-  const deliveryPendingLine =
-    service === "domicilio" && barrio?.price == null
-      ? "⚠️ *El valor del envío se confirma según tu ubicación.*"
-      : undefined;
+  const deliveryPending = service === "domicilio" && barrio?.price == null && delivery === 0;
 
   const productBlocks = items.map((it, idx) => {
     const detail = buildDetailLine(it.product, it.version, it.size);
@@ -211,12 +206,13 @@ export function buildWhatsAppMessage(args: {
     const netTotal = it.baseLine + extrasTotalMonto - itemDiscountTotal;
 
     const lines: string[] = [];
-    lines.push(`*${idx + 1}) x${it.qty} ${pickCategoryEmoji(it.product)} ${it.product.name}*`);
+    lines.push(`*${idx + 1}) ${it.qty} × ${it.product.name}*`);
     if (detail) lines.push(detail);
-    lines.push(`Precio del producto: *${cop(it.baseLine)}*`);
+    if (it.product.dailyMenuId && it.product.description) lines.push(it.product.description);
+    lines.push(`Precio por unidad: *${cop(it.baseLine / it.qty)}*`);
 
     if (toppingNames.length) {
-      lines.push("", "🍬 *Incluye:*");
+      lines.push("", "*Incluye:*");
       toppingNames.forEach((n) => lines.push(`• ${n}`));
     }
 
@@ -237,25 +233,25 @@ export function buildWhatsAppMessage(args: {
       itemDiscounts.forEach((d) => lines.push(`${d.nombre}: _-${cop(d.descuento)}_`));
     }
 
-    lines.push("", `*Subtotal del producto: ${cop(netTotal)}*`);
+    lines.push("", `*Subtotal: ${cop(netTotal)}*`);
 
     return lines.join("\n");
   });
 
   const payEmoji = paymentMethod === "Transferencia" ? "🏦" : "💵";
 
-  const headerLines = [`👋 *¡Nuevo pedido recibido!*`, `🧾 *Código:* ${code}`, `🌐 *Origen:* ${origin}`];
+  const headerLines = [`🥤 *Nuevo pedido · ${BRAND_NAME}*`, `🧾 *Código:* ${code}`, `🌐 *Origen:* ${origin}`];
 
   const customerSection = [
     section("🙋 Datos del cliente"),
     `Nombre: *${name}*`,
     `Teléfono: *${phone}*`,
     isBirthdayToday(birthdayKey)
-      ? `🎂 *¡Hoy es su cumpleaños!* Si te envía por acá una foto de su cédula y el nombre coincide con el del pedido, puedes aplicarle el descuento de cumpleaños desde el pedido.`
+      ? `🎂 Hoy es el cumpleaños del cliente.`
       : null,
   ];
 
-  const locationLine = locationLink ? `📍 *Ubicación en tiempo real:* ${locationLink}` : null;
+  const locationLine = service === "domicilio" && locationLink ? `📍 *Ubicación compartida:* ${locationLink}` : null;
 
   const serviceSection = [
     section(`${pickServiceEmoji(service)} Servicio`),
@@ -263,35 +259,38 @@ export function buildWhatsAppMessage(args: {
     barrioLine ?? null,
     addressLine ?? null,
     locationLine ?? null,
-    deliveryPendingLine ?? null,
+    service === "local" && tableNumber ? `Mesa: *${tableNumber}*` : null,
+    service === "llevar" ? `📍 *Recoger en:* ${BUSINESS_ADDRESS}` : null,
   ];
 
-  const productsSection = [section("🛍️ Detalle del pedido"), "", productBlocks.join("\n\n\n")];
+  const productsSection = [section("🛍️ Detalle del pedido"), "", productBlocks.join("\n\n")];
 
   const commentsSection = comments?.trim()
     ? [section("📝 Comentarios"), comments.trim()]
     : [];
 
-  const deliveryLine = service === "domicilio" ? `${pickServiceEmoji(service)} Domicilio: *${cop(delivery)}*` : null;
+  const deliveryLine = service === "domicilio" ? `${pickServiceEmoji(service)} Domicilio: *${deliveryPending ? "Por confirmar" : cop(delivery)}*` : null;
 
   const paymentSummarySection = [
     section("💰 Resumen de pago"),
-    `Productos: *${cop(subtotal - descuentoTotal)}*`,
+    `Productos: *${cop(subtotal)}*`,
+    descuentoTotal > 0 ? `Descuento: *−${cop(descuentoTotal)}*` : null,
     deliveryLine,
     "",
-    `💳 *TOTAL A PAGAR: ${cop(total)}*`,
+    `💳 *${deliveryPending ? "TOTAL SIN DOMICILIO" : "TOTAL A PAGAR"}: ${cop(total)}*`,
   ];
 
   const paymentMethodSection = [
     section(`${payEmoji} Método de pago`),
-    `*${paymentMethodLabel(paymentMethod)}*`,
+    `*${paymentMethod}*`,
+    paymentMethod === "Transferencia" ? `Nequi: *${NEQUI_PHONE}*` : null,
     "",
     paymentMethod === "Transferencia"
-      ? `📎 Envíanos el comprobante para confirmar tu pedido.`
-      : `✅ Ten el valor exacto si es posible.`,
+      ? `📎 Adjunta el comprobante de la transferencia en este chat.`
+      : `Pago en efectivo al recibir el pedido.`,
   ];
 
-  const footerSection = ["", `🌶️ *¡Gracias por elegir Avena Cubana Pop!*`];
+  const footerSection = ["", `💙 *¡Gracias por elegir ${BRAND_NAME}!*`];
 
   return [
     ...headerLines,
