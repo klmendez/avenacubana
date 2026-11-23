@@ -1,0 +1,20 @@
+.sale-ticket { display: none; }
+@media print {
+  @page { margin: 0; }
+  body:has(.sale-ticket) > :not(.sale-ticket) { display: none !important; }
+  body:has(.sale-ticket) { margin: 0; background: white; }
+  .sale-ticket { display: block; box-sizing: border-box; width: 72mm; max-width: 100%; padding: 3mm 2mm; margin: 0 auto; font: 11px/1.35 Arial,sans-serif; color: black; background: white; overflow-wrap: anywhere; }
+  .sale-ticket img { display: block; width: 23mm; height: 23mm; object-fit: contain; margin: 0 auto 1mm; }
+  .sale-ticket table { width: 100%; border-collapse: collapse; font-size: 10px; }
+  .sale-ticket td,.sale-ticket th { text-align: right; padding: 1mm .4mm; border-bottom: 1px solid black; }
+  .sale-ticket tr { break-inside: avoid; }
+  .sale-ticket :is(th,td):first-child { text-align: left; }
+  .sale-ticket p { margin: 2mm 0; }
+  .ticket-brand, .sale-ticket footer { text-align: center; break-inside: avoid; }
+  .ticket-brand { padding-bottom: 2mm; border-bottom: 1px dashed black; }
+  .ticket-brand strong { font-size: 14px; }
+  .sale-ticket .ticket-total { text-align: right; margin: 2mm 0; }
+  .ticket-total strong { font-size: 15px; }
+  .sale-ticket footer { padding-top: 2mm; border-top: 1px dashed black; }
+  .sale-ticket footer strong { display: block; margin-top: 1mm; }
+}

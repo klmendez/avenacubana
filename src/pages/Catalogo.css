@@ -1,0 +1,63 @@
+.store-menu { color:#0d294b }
+.menu-tabs {
+  position: sticky;
+  top: 3.5rem;
+  z-index: 30;
+  background: var(--color-crema, #f6fbff);
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  gap: .4rem;
+  padding: .6rem 0;
+}
+.menu-tabs::-webkit-scrollbar { display: none }
+.menu-tabs button {
+  flex: none;
+  white-space: nowrap;
+  min-height: 42px;
+  padding: .45rem .85rem;
+  border: 1px solid #bfd5e3;
+  border-radius: 999px;
+  background: transparent;
+  color: #173955;
+  font-size: .875rem;
+}
+.menu-tabs button[aria-pressed=true] {
+  border-color: #086ba7;
+  background: #086ba7;
+  color: white;
+  font-weight: 650;
+}
+.menu-tabs button:focus-visible {
+  outline: 2px solid #10355b;
+  outline-offset: 2px;
+}
+.menu-section-title { margin:1.5rem 0 0; padding-bottom:.45rem; font-size:1.55rem; font-weight:750; border-bottom:2px solid #10355b }
+.menu-row { padding:1rem 0; border-bottom:1px solid #cddde8; display:grid; gap:.65rem; min-width:0 }
+.menu-heading { display:flex; gap:.8rem; align-items:center }
+.menu-heading img { width:62px; height:68px; flex:none; object-fit:contain }
+.menu-heading h3 { font-size:1.15rem; font-weight:750; line-height:1.25 }
+.menu-heading p { font-size:.86rem; color:#516677; line-height:1.4 }
+.menu-sizes { min-width:0; margin:0; padding:0; border:0 }
+.menu-sizes legend { font-size:.8rem; font-weight:600; color:#516677 }
+.menu-size { display:grid; grid-template-columns:1rem minmax(0,1fr) auto; gap:.6rem; align-items:center; min-height:44px; border-bottom:1px dotted #d4e1eb; cursor:pointer; font-size:.91rem }
+.menu-size input { accent-color:#0875b3 }
+.menu-price { text-align:right; font-variant-numeric:tabular-nums }
+.menu-price small { display:block; color:#687582 }
+.menu-order { display:flex; align-items:center; gap:.3rem }
+.menu-order { justify-content:space-between }
+.menu-add { min-height:44px; padding:.5rem 1rem; border-radius:.55rem; background:#076ba7; color:white; font-weight:650 }
+
+.menu-section-title { text-align:center; font-size:1.2rem; border-bottom:1px solid #cddde8 }
+.menu-row { grid-template-columns:clamp(56px,18vw,84px) minmax(0,1fr); gap:.25rem .85rem; align-items:start }
+.menu-heading { display:contents }
+.menu-heading img { grid-column:1; grid-row:1 / span 3; width:100%; height:auto; aspect-ratio:1; border-radius:.55rem }
+.menu-heading h3 { font-size:1rem }
+.menu-sizes,.menu-order { grid-column:2 }
+.menu-order { flex-wrap:wrap }
+.menu-add { border-radius:999px; margin-left:auto; font-size:.86rem }
+@media(min-width:800px) { .menu-rows { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 2rem } }
+
+@media (min-width: 640px) { .menu-tabs { top: 4rem } }
+@media (min-width: 1024px) { .menu-tabs { top: 5rem } }

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <style>body { margin: 0; background: #061d70; }</style>
+    <link rel="icon" type="image/png" href="/avena-cubana-logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Avena Cubana Pop. Tradición, sabor y frescura en cada vaso. Explora nuestra carta y haz tu pedido por WhatsApp." />
+    <meta name="keywords" content="Avena Cubana Pop, bebidas, carta, pedidos, WhatsApp" />
+    <meta property="og:title" content="Avena Cubana Pop" />
+    <meta property="og:description" content="Avena Cubana Pop. Tradición, sabor y frescura en cada vaso. Explora nuestra carta y haz tu pedido por WhatsApp." />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_CO" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Avena Cubana Pop" />
+    <meta name="twitter:description" content="Avena Cubana Pop. Tradición, sabor y frescura en cada vaso. Explora nuestra carta y haz tu pedido por WhatsApp." />
+    <title>Avena Cubana Pop</title>
+  </head>
+  <body>
+    <script>
+      const pagesPath = sessionStorage.getItem('avena-cubana-pages-path');
+      if (pagesPath) {
+        sessionStorage.removeItem('avena-cubana-pages-path');
+        if (pagesPath.startsWith('/') && !pagesPath.startsWith('//')) history.replaceState(null, '', pagesPath);
+      }
+    </script>
+    <div id="root">
+      <div style="min-height:100dvh;display:grid;place-items:center;background:#061d70;color:#f4fbff;padding:24px;box-sizing:border-box;text-align:center;font-family:system-ui,sans-serif">
+        <div style="max-width:34rem">
+          <p style="font-size:14px;letter-spacing:.12em">AVENA CUBANA POP</p>
+          <h1 style="font-size:clamp(24px,5vw,36px);font-weight:500;line-height:1.3">Bienvenido a la experiencia en Avena Cubana Pop.</h1>
+          <p role="status">Estamos preparando tu visita…</p>
+          <p id="boot-help" hidden>La carga está tardando. Comprueba tu conexión y <a href="" style="color:inherit">vuelve a intentarlo</a>.</p>
+          <noscript>Activa JavaScript en tu navegador para consultar el menú y hacer tu pedido.</noscript>
+        </div>
+      </div>
+    </div>
+    <script>document.getElementById('root').dataset.started = performance.now(); setTimeout(function () { const help = document.getElementById('boot-help'); if (help) help.hidden = false; }, 12000);</script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

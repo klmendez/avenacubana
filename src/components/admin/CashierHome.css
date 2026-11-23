@@ -1,0 +1,40 @@
+.cash-home { color:#0a2049; max-width:96rem; margin:auto; display:grid; gap:clamp(1.15rem,2.6vw,2.5rem); padding-bottom:2rem }
+.admin-theme:has(.cash-home), .admin-theme:has(.cash-home) .admin-page-header { background:white }
+.cash-welcome { position:relative; display:flex; align-items:center; overflow:hidden; min-height:clamp(10rem,14vw,15rem); padding:2rem 3.5%; border-radius:1.7rem; background:#f4f8fb }
+.cash-welcome:before { content:''; position:absolute; width:37%; aspect-ratio:1.8; right:-1%; bottom:-38%; border-radius:50% 50% 0 0; background:#bce4fa }
+.cash-welcome>div { position:relative; width:66%; z-index:1 }
+.cash-welcome h2 { font-size:clamp(1.45rem,2.6vw,2.8rem); font-weight:700; line-height:1.14; letter-spacing:-.035em }
+.cash-welcome p { margin:.65rem 0; color:#445672; font-size:clamp(.9rem,1.6vw,1.6rem) }
+.cash-welcome>div:after { content:''; display:block; width:4rem; height:.38rem; margin-top:1rem; background:#008eda; border-radius:1rem }
+.cash-welcome img { position:absolute; right:0; bottom:0; width:36%; height:100%; object-fit:contain }
+.cash-actions,.cash-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(.65rem,1.4vw,1.4rem) }
+.cash-actions :is(a,button) { position:relative; display:flex; flex-direction:column; justify-content:center; padding:clamp(1rem,2vw,2.2rem); min-height:clamp(11rem,16vw,16rem); border:1px solid #d7e6ee; border-radius:1.5rem; box-shadow:0 5px 10px #124a731a; color:#091e47; background:white }
+.cash-actions :is(a,button):first-child { background:linear-gradient(145deg,#009fec,#0068ba); color:white }
+.cash-actions :is(a,button):focus-visible,.cash-actions :is(a,button):hover { outline:2px solid #1598df; outline-offset:2px }
+.cash-action-icon { color:#008de0; width:clamp(2.4rem,4vw,4.6rem); height:auto; margin-bottom:1rem }
+.cash-actions :is(a,button):first-child svg { color:white }
+.cash-actions strong { font-size:clamp(1.1rem,1.9vw,2rem); line-height:1.2 }
+.cash-actions span { margin-top:.5rem; padding-right:2rem; line-height:1.35 }
+.cash-arrow { position:absolute; right:1rem; bottom:22%; background:#8fc6e430; border-radius:50%; width:2rem; height:2rem; padding:.35rem }
+.cash-summary-head,.cash-summary-head h2,.cash-summary-head span,.cash-note,.cash-stats>div { display:flex; align-items:center; gap:.8rem }
+.cash-summary-head { flex-wrap:wrap; justify-content:space-between; margin-bottom:1rem }
+.cash-summary-head h2 { font-size:clamp(1.1rem,1.65vw,1.7rem); font-weight:700 }
+.cash-summary-head span { font-size:.9rem; color:#425879 }
+.cash-summary-head svg,.cash-note svg { color:#087fc7; flex-shrink:0 }
+.cash-stats>div { border-radius:1rem; padding:clamp(.8rem,2vw,2rem); background:#eaf5fc }
+.cash-stats>div:nth-child(2) { background:#fff7e6 }
+.cash-stats>div:nth-child(3) { background:#fff0f2 }
+.cash-stats svg { width:clamp(1.7rem,3vw,3.2rem); height:auto; color:#078bd3; flex-shrink:0 }
+.cash-stats>div:nth-child(2) svg { color:#db9414 }
+.cash-stats>div:nth-child(3) svg { color:#e64c65 }
+.cash-stats strong { display:block; font-size:clamp(1.6rem,3vw,3rem); line-height:1.15 }
+.cash-note { background:#e7f4fc; padding:1rem 1.4rem; border-radius:1rem }
+@media(max-width:700px){.cash-actions,.cash-stats{grid-template-columns:1fr}.cash-actions :is(a,button){min-height:5rem;padding:1rem 3rem 1rem 4.6rem}.cash-action-icon{position:absolute;left:1rem;margin:0}.cash-actions span{padding:0}.cash-arrow{bottom:calc(50% - 1rem)}.cash-welcome{padding:1rem;min-height:9.5rem}.cash-stats>div{padding:.8rem 1rem}.cash-stats>div>div{flex:1;display:flex;align-items:center;justify-content:space-between}.cash-summary-head span{font-size:.8rem}}
+.cash-account { position:relative }
+.cash-account summary { display:flex; align-items:center; gap:.45rem; cursor:pointer; list-style:none; font-weight:600 }
+.cash-account summary svg:first-child { color:#078ed9 }
+.cash-account>div { position:absolute; top:100%; right:0; background:white; padding:1rem; box-shadow:0 6px 20px #17395726; border-radius:.6rem; font-size:.85rem }
+.cash-account button { margin-top:.7rem; color:#086ab0 }
+@media(max-width:540px){.cash-account summary span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}}
+
+.cash-actions button { text-align:left; cursor:pointer }

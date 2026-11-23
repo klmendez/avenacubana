@@ -1,0 +1,638 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+/* Legibilidad y navegación, también con zoom y teclado. */
+html { scroll-padding-top: 6rem; }
+.public-site :focus-visible { outline: 3px solid #98632d; outline-offset: 4px; }
+.skip-link { position: fixed; left: 1rem; top: -8rem; z-index: 200; padding: .8rem 1rem; background: #fff; color: #061d70; }
+.skip-link:focus { top: 1rem; }
+.welcome-screen { position: fixed; inset: 0; z-index: 150; display: grid; place-items: center; overflow: auto; padding: 1.5rem; background: #061d70; color: #f4fbff; text-align: center; }
+.welcome-content { max-width: 34rem; margin: auto; }
+.welcome-content h1 { font-size: clamp(1.5rem, 5vw, 2.25rem); font-weight: 500; line-height: 1.35; margin: 1.5rem 0; }
+.welcome-eyebrow { font-size: .875rem; letter-spacing: .12em; text-transform: uppercase; }
+.welcome-content button { margin-top: 1.5rem; padding: .8rem 1.2rem; border: 1px solid currentColor; }
+@media (prefers-reduced-motion: reduce) {
+  .public-site *, .public-site *::before, .public-site *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+@media (max-width: 639px) {
+  .public-site input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), .public-site select, .public-site textarea { font-size: 1rem !important; }
+  .public-site button { min-height: 44px; }
+
+
+}
+
+@theme {
+  --color-rojo: #078fe5;
+  --color-rojo-dark: #061d70;
+  --color-rojo-light: #dcefff;
+  --color-crema: #f4fbff;
+  --color-crema-dark: #d5eafa;
+  --font-family-sans: 'Poppins', sans-serif;
+  --font-sans: 'Poppins', sans-serif;
+  --font-serif: 'Poppins', sans-serif;
+}
+
+:root {
+  font-family: 'Poppins', sans-serif;
+  line-height: 1.6;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: #f4fbff;
+  color: #1a1a1a;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #f4fbff;
+  color: #1a1a1a;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.home-buy-button {
+  background-color: #fff;
+  color: #078fe5;
+}
+
+.home-buy-button:hover,
+.home-buy-button:active {
+  background-color: #078fe5;
+  color: #fff;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  margin: 0;
+}
+
+b, strong {
+  font-weight: 600;
+}
+
+p {
+  margin: 0;
+}
+
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-16px) rotate(1deg); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-float-delay {
+  animation: float 5s ease-in-out infinite;
+  animation-delay: 1s;
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-marquee {
+  animation: marquee 24s linear infinite;
+  display: flex;
+  width: max-content;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Avena Cubana Pop admin theme */
+.admin-theme {
+  --admin-brown: #061d70;
+  --admin-accent: #087fc7;
+  --admin-cream: #e9f6ff;
+  --admin-paper: #ffffff;
+  --admin-line: rgba(107, 44, 14, 0.18);
+  font-family: 'Poppins', sans-serif;
+  overflow-x: hidden;
+}
+
+/* En móvil el panel es un drawer; nunca debe comprimir el contenido a una
+   columna estrecha ni heredar las columnas del grid de escritorio. */
+@media (max-width: 1023px) {
+  .admin-theme {
+    display: block !important;
+    min-width: 100% !important;
+  }
+  .admin-theme > aside {
+    width: min(17rem, 88vw) !important;
+    max-width: 17rem;
+  }
+  .admin-theme > div {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* Contraste de marca: los fondos café siempre llevan texto blanco. */
+button[class~="bg-[#086bb1]"],
+button[class~="bg-[#087fc7]"],
+button[class~="bg-[#061d70]"],
+button[class~="bg-rojo"],
+a[class~="bg-rojo"],
+a[class~="bg-[#086bb1]"],
+a[class~="bg-[#087fc7]"],
+a[class~="bg-[#061d70]"] {
+  color: #ffffff !important;
+}
+
+button[class~="bg-[#086bb1]"]:disabled,
+button[class~="bg-[#087fc7]"]:disabled,
+button[class~="bg-rojo"]:disabled {
+  color: #ffffff !important;
+  opacity: 0.55;
+}
+
+
+.admin-content h1,
+.admin-content h2,
+.admin-content h3 {
+  color: var(--admin-brown) !important;
+}
+
+.admin-content h2,
+.admin-content h3 {
+  font-family: 'Poppins', sans-serif;
+}
+
+.admin-content input,
+.admin-content select,
+.admin-content textarea {
+  border-color: var(--admin-line) !important;
+  background-color: var(--admin-paper) !important;
+  color: #071e55 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.admin-content input:focus,
+.admin-content select:focus,
+.admin-content textarea:focus {
+  border-color: var(--admin-accent) !important;
+  outline: 2px solid rgba(121, 55, 19, 0.12) !important;
+}
+
+/* Tablas del panel, incluida la vista de pedidos de caja. */
+.admin-data-table {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border-radius: .75rem;
+  border-bottom: 1px solid #d0deeb;
+  background: #fff;
+}
+.admin-data-table:focus-visible { outline: 2px solid #087fc7; outline-offset: 2px; }
+.admin-data-table table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #0a2049;
+  font-size: .85rem;
+  line-height: 1.35;
+  text-align: left;
+}
+.admin-data-table :is(th, td) {
+  padding: .7rem .6rem;
+  border-bottom: 1px solid #e1ebf5;
+  vertical-align: middle;
+}
+.admin-data-table th {
+  background: #d5eafa;
+  color: #061d70;
+  font-size: .85rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+}
+.admin-data-table tbody tr:hover { background: #eaf7ff; }
+.admin-data-table small { display: block; color: #536a83; }
+.admin-data-table table:has(th:nth-child(5)) { min-width: 42.5rem; }
+.admin-data-table table:has(th:nth-child(7)) { min-width: 49rem; }
+
+.admin-content table button:focus-visible {
+  outline: 2px solid var(--admin-accent);
+  outline-offset: 2px;
+}
+
+
+.admin-content [class~="bg-white"],
+.admin-content [style*="background: rgb(255"],
+.admin-content [style*="background: '#fff'"] {
+  background-color: var(--admin-paper) !important;
+}
+
+.admin-content [class~="bg-gray-50"],
+.admin-content [class~="bg-gray-100"] {
+  background-color: #e9f6ff !important;
+}
+
+.admin-content [class~="text-gray-900"],
+.admin-content [class~="text-black"] {
+  color: #071e55 !important;
+}
+
+.admin-content [class~="border-gray-200"],
+.admin-content [class~="border-gray-300"] {
+  border-color: var(--admin-line) !important;
+}
+
+.admin-content button[class*="bg-black"],
+.admin-content button[class*="bg-gray-900"] {
+  background-color: var(--admin-accent) !important;
+  color: #fff4dc !important;
+  border-radius: 0 !important;
+}
+
+.admin-content ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.admin-content ::-webkit-scrollbar-thumb {
+  background: #90c7e8;
+  border-radius: 999px;
+  border: 2px solid #dcefff;
+}
+
+.admin-content ::-webkit-scrollbar-track {
+  background: #d5eafa;
+  border-radius: 999px;
+}
+
+.admin-duplicate-heading { display: none; }
+
+.admin-daily-menu form { padding: 1rem; }
+.admin-daily-menu form input:not([type="checkbox"]) { padding: 0.4rem 0.55rem; }
+.admin-daily-menu form section { padding-top: 0.7rem; }
+.admin-daily-menu form section h3 { font-size: 1rem; }
+.admin-daily-menu form section > div:first-child { margin-bottom: 0.5rem; }
+.admin-daily-menu form > div:nth-of-type(2) { margin-top: 1rem; gap: 1rem; }
+.admin-daily-menu form > label { margin-top: 1rem; padding-block: 0.65rem; }
+.admin-daily-menu form > div:last-child { margin-top: 0.75rem; }
+.admin-daily-menu aside button { padding-block: 0.6rem; }
+.admin-promotions-form input[type="datetime-local"] { width: 100%; min-width: 0; max-width: 14rem; }
+@media(min-width:1024px){
+.admin-theme:not(.admin-sidebar-collapsed) .admin-sidebar-brand { position:relative; height:auto; justify-content:center; padding:1.2rem .5rem }
+.admin-theme:not(.admin-sidebar-collapsed) .admin-sidebar-brand>a { flex-direction:column;text-align:center }
+.admin-theme:not(.admin-sidebar-collapsed) .admin-sidebar-brand img { width:5.8rem;height:5.8rem }
+.admin-theme:not(.admin-sidebar-collapsed) .admin-sidebar-brand>button { position:absolute;right:.25rem;top:.5rem }
+}
+
+.admin-sidebar-nav { scrollbar-width: thin; scrollbar-color: #5499c4 transparent; }
+.admin-sidebar-nav::-webkit-scrollbar { width: 5px; }
+.admin-sidebar-nav::-webkit-scrollbar-thumb { background: #5499c4; border-radius: 8px; }
+
+.admin-welcome { max-width: 72rem; }
+.admin-welcome-intro { border-bottom: 1px solid #b6d9ed; padding: .35rem 0 1.2rem; }
+.admin-welcome-intro p { color: #286b9d; font-size: .65rem; font-weight: 600; letter-spacing: .17em; }
+.admin-welcome-intro h2 { margin: .35rem 0; font-size: clamp(1.35rem, 3vw, 2rem); font-weight: 600; }
+.admin-welcome-intro span { color: #526d80; font-size: .85rem; }
+.admin-welcome-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 1.5rem; }
+.admin-welcome-link { display: flex; gap: .75rem; align-items: center; text-align: left; border-bottom: 1px solid #c6e0ef; padding: 1rem 0; min-width: 0; }
+.admin-welcome-link:hover .admin-welcome-icon { background: #087fc7; color: white; }
+.admin-welcome-icon { flex: none; display: grid; place-items: center; width: 3rem; height: 3rem; border: 1px solid #82b9d9; border-radius: 50%; color: #087fc7; transition: .2s; }
+.admin-welcome-link strong, .admin-welcome-link small { display: block; }
+.admin-welcome-link strong { font-size: .83rem; }
+.admin-welcome-link small { color: #526d80; font-size: .7rem; line-height: 1.45; margin-top: .2rem; }
+.admin-welcome-arrow { margin-left: auto; color: #286b9d; }
+.inventory-layout { display: grid; grid-template-columns: minmax(0, 20rem) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+.inventory-forms form { border-top: 1px solid #90c7e8; padding: .7rem 0 1.2rem; }
+.inventory-layout h2 { font-size: .95rem; font-weight: 600; margin: 0 0 .65rem; }
+.inventory-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; }
+.inventory-fields label { display: grid; gap: .2rem; font-size: .7rem; font-weight: 600; }
+.inventory-fields input, .inventory-fields select { width: 100%; min-width: 0; padding: .4rem .5rem; border: 1px solid #b6d9ed; font-size: .8rem; font-weight: 400; }
+.inventory-wide { grid-column: 1 / -1; }
+.inventory-submit { background: #087fc7; color: white; padding: .48rem .85rem; margin-top: .7rem; font-size: .75rem; font-weight: 600; }
+.inventory-submit:disabled { opacity: .5; }
+.inventory-message, .inventory-empty { color: #526d80; font-size: .78rem; }
+.inventory-data { min-width: 0; }
+.inventory-data section + section { margin-top: 1.5rem; }
+.inventory-history > div { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px solid #c6e0ef; padding: .6rem 0; font-size: .8rem; }
+.inventory-history small { display: block; color: #526d80; font-size: .7rem; }
+.inventory-product-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); gap: .5rem; max-height: min(65vh, 34rem); overflow-y: auto; }
+.inventory-product-card { display: flex; align-items: center; gap: .65rem; min-width: 0; padding: .65rem; border: 1px solid #b6d9ed; border-radius: .65rem; background: #fff; text-align: left; color: #061d70; }
+.inventory-product-card[aria-pressed="true"] { border-color: #087fc7; background: #e5f5ff; box-shadow: inset 0 0 0 1px #087fc7; }
+.inventory-product-card span { min-width: 0; }
+.inventory-product-card strong, .inventory-product-card small { display: block; overflow-wrap: anywhere; }
+.inventory-product-card small { color: #526d80; font-size: .75rem; }
+.inventory-link-label { display: grid; gap: .25rem; margin-top: .65rem; font-size: .7rem; font-weight: 600; }
+.inventory-link-label select { min-width: 0; width: 100%; padding: .4rem; border: 1px solid #b6d9ed; }
+.inventory-links { max-height: 15rem; overflow-y: auto; margin-top: .5rem; border-block: 1px solid #c6e0ef; }
+.inventory-links > div { display: flex; align-items: center; justify-content: space-between; gap: .4rem; padding: .4rem 0; border-bottom: 1px solid #d8ecf7; font-size: .75rem; }
+.inventory-links label { display: flex; align-items: center; gap: .4rem; min-width: 0; }
+.inventory-links label small { display: block; color: #526d80; }
+.inventory-links > div > input { width: 4.5rem; padding: .3rem; border: 1px solid #b6d9ed; }
+
+.reservation-page { min-height: 100dvh; padding: 5.5rem 1.25rem 5rem; background: #f4fbff; color: #061d70; }
+.reservation-wrap { max-width: 42rem; margin: 0 auto; }
+.reservation-wrap h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); margin: .4rem 0; text-align: center; }
+.reservation-lead { font-size: .85rem; color: #526d80; }
+.reservation-intro { text-align: center; }
+.reservation-step { margin: 1.5rem 0 .75rem; padding-bottom: .5rem; border-bottom: 1px solid #c6e0ef; text-align: center; font-size: .8rem; font-weight: 600; color: #286b9d; }
+.reservation-form { display: grid; gap: 1rem; }
+.reservation-form label, .reservation-form legend { font-size: .8rem; font-weight: 600; }
+.reservation-form label span { color: #526d80; font-weight: 400; }
+.reservation-form input:not([type=radio]), .reservation-form select, .reservation-form textarea { display: block; width: 100%; min-width: 0; margin-top: .35rem; border: 1px solid #b6d9ed; background: #ffffff; padding: .65rem; font-size: .9rem; font-weight: 400; }
+.reservation-form fieldset { border: 0; margin: 0; padding: 0; }
+.reservation-month { display: flex; align-items: center; justify-content: space-between; text-transform: capitalize; font-size: .9rem; }
+.reservation-month button { border: 1px solid #b6d9ed; padding: .35rem .75rem; }
+.reservation-month button:disabled { opacity: .3; }
+.reservation-calendar { display: grid; grid-template-columns: repeat(7,minmax(0,1fr)); gap: .25rem; }
+.reservation-calendar > span { text-align: center; font-size: .7rem; color: #526d80; padding: .3rem 0; }
+.reservation-calendar button { min-height: 3.1rem; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #b6d9ed; font-size: .8rem; }
+.reservation-calendar button small { color: #526d80; font-size: .56rem; }
+.reservation-calendar button:disabled { border-color: transparent; color: #a9c5d6; }
+.reservation-calendar button.selected, .reservation-time-list button.selected { background: #087fc7; color: white; border-color: #087fc7; }
+.reservation-calendar button.selected small { color: white; }
+.reservation-time-list { display: flex; flex-wrap: wrap; gap: .5rem; }
+.reservation-time-list button { border: 1px solid #9cc8e0; padding: .65rem 1rem; font-size: .85rem; }
+.reservation-people-label { font-size: .85rem; font-weight: 600; }
+.reservation-people { display: flex; align-items: center; justify-content: space-between; gap: 1rem; max-width: 17rem; margin-top: .7rem; }
+.reservation-people button { display: grid; place-items: center; width: 2.7rem; height: 2.7rem; border: 1px solid #90c7e8; border-radius: 50%; color: #087fc7; font-size: 1.4rem; }
+.reservation-people button:disabled { opacity: .35; }
+.reservation-people span { font-size: 1.1rem; font-weight: 600; }
+.reservation-people small { font-size: .8rem; font-weight: 500; color: #526d80; }
+.reservation-admin-toolbar { margin-bottom: 1.25rem; padding-bottom: .8rem; border-bottom: 1px solid #b6d9ed; }
+.reservation-admin-toolbar button { border: 1px solid #90c7e8; padding: .6rem .9rem; color: #087fc7; font-size: .8rem; font-weight: 600; }
+.reservation-settings { max-width: 70rem; margin-bottom: 1.25rem; padding-bottom: .75rem; border-bottom: 1px solid #b6d9ed; }
+.reservation-settings-form { display: grid; gap: .7rem; max-width: 36rem; padding-top: .75rem; }
+.reservation-settings-form p { color: #526d80; font-size: .72rem; }
+.reservation-settings-form label, .reservation-settings-form legend { display: block; font-size: .75rem; font-weight: 600; }
+.reservation-settings-form input:not([type=checkbox]) { display: block; width: 100%; min-width: 0; border: 1px solid #b6d9ed; padding: .4rem; margin-top: .25rem; }
+.reservation-settings-form fieldset { border: 0; padding: 0; }
+.reservation-days { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .35rem; }
+.reservation-time-editor { display: flex; gap: .5rem; align-items: center; max-width: 22rem; }
+.reservation-time-editor input { flex: 1; }
+.reservation-time-editor button { flex: none; border: 1px solid #90c7e8; padding: .4rem .6rem; font-size: .75rem; color: #087fc7; font-weight: 600; }
+.reservation-time-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin: .5rem 0; }
+.reservation-time-chips button { border: 1px solid #b6d9ed; background: #e9f6ff; padding: .3rem .55rem; font-size: .75rem; }
+.reservation-choices { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: .6rem; }
+.reservation-choices label { display: flex; align-items: center; gap: .4rem; }
+.reservation-choices input { accent-color: #087fc7; }
+.reservation-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: .75rem; }
+.reservation-submit { background: #087fc7; color: white; padding: .75rem 1.2rem; font-size: .8rem; font-weight: 600; }
+.reservation-submit:disabled { opacity: .5; }
+.reservation-actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.reservation-error { color: #ae3028; font-size: .8rem; }
+.phone-lookup { margin-top: .6rem; font-size: .75rem; color: #526d80; }
+.phone-lookup button { margin-top: .4rem; border-bottom: 1px solid #087fc7; color: #087fc7; font-size: .75rem; font-weight: 600; padding: .2rem 0; }
+.phone-lookup button:disabled { opacity: .5; }
+.phone-lookup-code { display: flex; align-items: end; gap: .75rem; margin-top: .5rem; }
+.phone-lookup-code label { flex: 1; }
+.phone-lookup-code input { display: block; width: 100%; border: 1px solid #b6d9ed; background: white; margin-top: .25rem; padding: .45rem; color: #071e55; }
+.phone-lookup > p:last-child { margin-top: .4rem; }
+.reservation-success { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #c6e0ef; text-align: center; }
+.reservation-success h2 { font-size: 1.3rem; }
+.reservation-success p { color: #526d80; margin: .5rem 0 1.5rem; font-size: .9rem; }
+.reservation-success a { border-bottom: 1px solid #087fc7; font-weight: 600; }
+.admin-reservations { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2rem; max-width: 70rem; }
+.admin-reservations h2 { font-size: 1rem; font-weight: 600; }
+.admin-reservations h3 { margin-top: 1rem; font-size: .85rem; font-weight: 600; }
+.admin-reservations p { color: #526d80; font-size: .77rem; line-height: 1.5; margin: .35rem 0; }
+.reservation-list { margin-top: .75rem; border-top: 1px solid #c6e0ef; }
+.reservation-list button { display: flex; justify-content: space-between; gap: .5rem; width: 100%; border-bottom: 1px solid #c6e0ef; text-align: left; padding: .65rem .4rem; font-size: .8rem; }
+.reservation-list button.selected { background: #d5eafa; }
+.reservation-list small { display: block; font-size: .7rem; color: #526d80; }
+.reservation-list strong { font-size: .7rem; color: #087fc7; }
+.reservation-map { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin: .6rem 0; padding: .7rem; background: #d5eafa; }
+.reservation-map button { border: 1px solid #82b9d9; background: #e9f6ff; padding: .6rem .3rem; font-size: .75rem; }
+.reservation-map button.selected { background: #087fc7; color: white; }
+.reservation-admin-status { display: block; margin-top: 1rem; font-size: .8rem; font-weight: 600; }
+.reservation-admin-status select { display: block; width: 100%; border: 1px solid #b6d9ed; padding: .5rem; margin-top: .3rem; }
+@media (max-width: 700px) { .admin-reservations { grid-template-columns: 1fr; gap: 1.2rem; } }
+@media (max-width: 900px) { .admin-welcome-links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .inventory-layout { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 480px) { .admin-welcome-links { grid-template-columns: 1fr; } }
+
+.admin-table-region { min-width: 0; max-width: 100%; }
+.admin-table-scroll { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; scrollbar-color: #5499c4 #d5eafa; }
+.admin-table-scroll.public-site :focus-visible { outline: 2px solid #087fc7; outline-offset: 2px; }
+.admin-table-control { display: flex; align-items: center; gap: .55rem; padding: .4rem .15rem; color: #087fc7; font-size: .75rem; }
+.admin-content .admin-table-control input[type="range"] { appearance: none; width: min(14rem, 50%); height: 6px; padding: 0; border: 0; border-radius: 999px !important; background: #c3e3f4 !important; cursor: pointer; }
+.admin-table-control input[type="range"]::-webkit-slider-thumb { appearance: none; width: 22px; height: 14px; border-radius: 8px; background: #087fc7; }
+.admin-table-control input[type="range"]::-moz-range-thumb { width: 22px; height: 14px; border: 0; border-radius: 8px; background: #087fc7; }
+.admin-table-control-label { color: #526d80; }
+
+.daily-layout { display: grid; grid-template-columns: minmax(0, 34rem) minmax(0, 1fr); align-items: start; gap: 1.5rem; }
+.daily-editor { min-width: 0; }
+.daily-fields, .daily-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+.daily-fields label, .daily-options { display: grid; gap: .25rem; color: #385d75; font-size: .75rem; font-weight: 600; }
+.daily-fields input, .daily-options textarea, .daily-special-row input { width: 100%; min-width: 0; padding: .4rem .5rem; border: 1px solid #b6d9ed; font-size: .875rem; font-weight: 400; }
+.daily-options textarea { resize: vertical; min-height: 4.5rem; line-height: 1.35; }
+.daily-hint { margin: .55rem 0; font-size: .75rem; color: #526d80; }
+.daily-specials { min-width: 0; font-size: .75rem; }
+.daily-special-heading, .daily-list-heading { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.daily-special-heading button, .daily-list-heading button, .daily-actions button { display: inline-flex; align-items: center; gap: .3rem; }
+.daily-special-heading button, .daily-list-heading button { color: #087fc7; font-weight: 600; }
+.daily-special-row { display: grid; grid-template-columns: minmax(0,1fr) 5rem auto; gap: .3rem; margin-top: .35rem; }
+.daily-publish { display: flex; align-items: center; gap: .5rem; margin: .85rem 0; font-size: .8rem; }
+.daily-publish input { accent-color: #087fc7; }
+.daily-actions { display: flex; align-items: center; gap: 1rem; font-size: .8rem; }
+.daily-list { border-top: 1px solid #b6d9ed; padding-top: .55rem; min-width: 0; }
+.daily-list-heading { font-size: .85rem; padding-bottom: .5rem; }
+.daily-list-item { display: block; width: 100%; padding: .55rem .4rem; border-top: 1px solid #c9e3f1; text-align: left; font-size: .8rem; }
+.daily-list-item span { display: block; margin-top: .2rem; color: #526d80; font-size: .7rem; }
+.daily-list-item.is-selected { background: #d5eafa; }
+@media (max-width: 767px) { .daily-layout { grid-template-columns: minmax(0, 1fr); } }
+
+@media (max-width: 639px) {
+  .admin-content {
+    overflow-x: hidden;
+  }
+  .admin-content .overflow-x-auto {
+    scrollbar-width: thin;
+    scrollbar-color: #5499c4 #d5eafa;
+    padding-bottom: 0.35rem;
+  }
+}
+
+/* Focus and spacing stay visible above fixed navigation. */
+.public-site :is(button, a, input, select, textarea) { scroll-margin-block: 7rem; }
+.reservation-calendar button small { font-size: .7rem; }
+.reservation-calendar button { padding: .25rem 0; }
+.reservation-lead { color: #456679; line-height: 1.6; }
+@media (max-width: 639px) {
+  .reservation-page { padding-inline: .75rem; }
+  .reservation-form label, .reservation-form legend { font-size: .875rem; }
+
+
+}
+
+.site-layout { --credit-line: 1rem; --credit-height: calc(var(--credit-line) + env(safe-area-inset-bottom, 0px)); }
+.site-layout::after { content: ""; flex: 0 0 var(--credit-height); }
+.site-footer {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  height: var(--credit-height);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: #79c7ec;
+  color: #12384d;
+  font-size: .625rem;
+  line-height: var(--credit-line);
+}
+.site-footer a { padding-inline: .65rem; }
+.site-footer a:hover, .site-footer a:focus-visible { text-decoration: underline; }
+.site-layout .admin-theme { min-height: calc(100dvh - var(--credit-height)); }
+.site-layout .admin-theme > aside { bottom: var(--credit-height); height: auto; }
+.public-cart-bar { bottom: var(--credit-height); padding-bottom: .5rem; }
+@media print {
+  .site-footer, .site-layout::after { display: none; }
+}
+.public-site:has(.public-cart-bar) { padding-bottom: 5rem; }
+.public-site :is(p, h1, h2, h3) { overflow-wrap: break-word; }
+.public-site .text-gray-400, .public-site .text-stone-400 { color: #597585; }
+
+/* Panel de inicio de Avena Cubana Pop */
+.admin-welcome { max-width: 76rem; }
+.admin-welcome-intro { padding: clamp(1.5rem, 4vw, 2.75rem); border: 0; border-radius: 1.5rem; background: linear-gradient(120deg, #061d70, #087fc7); color: white; box-shadow: 0 16px 35px rgba(6, 29, 112, .14); }
+.admin-welcome-intro p { color: #b9e8ff; letter-spacing: .22em; }
+.admin-welcome-intro h2 { margin: .65rem 0; color: white; font-size: clamp(1.6rem, 3vw, 2.5rem); }
+.admin-welcome-intro span { color: #e3f6ff; }
+.admin-welcome-links { gap: 1rem; margin-top: 1.25rem; }
+.admin-welcome-link { min-height: 6.5rem; padding: 1.15rem; border: 1px solid #d3eafa; border-radius: 1.1rem; background: white; box-shadow: 0 5px 18px rgba(6, 29, 112, .05); transition: transform .2s, box-shadow .2s; }
+.admin-welcome-link:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(6, 29, 112, .11); }
+.admin-welcome-icon { background: #e8f7ff; border-color: #d1ebfa; }
+@media (max-width: 850px) { .admin-welcome-links { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 500px) { .admin-welcome-links { grid-template-columns: 1fr; } }
+
+/* La navegación permanece visible durante el desplazamiento. */
+.admin-main { min-width: 0; }
+@media (min-width: 1024px) {
+  .admin-main { margin-left: 17rem; transition: margin-left .2s; }
+  .admin-sidebar-collapsed .admin-main { margin-left: 5rem; }
+}
+.admin-welcome-intro p { font-size: .875rem; font-weight: 600; letter-spacing: normal; text-transform: none; }
+.admin-theme :is(h1, h2, h3, p)[class*="tracking-"] { letter-spacing: normal; text-transform: none; color: #397aa6; }
+
+/* Tablas legibles con un peso de letra más ligero. */
+
+.inventory-status { white-space: nowrap; font-size: .85rem; font-weight: 500; }
+.inventory-status span { font-size: .7rem; margin-right: .2rem; }
+.inventory-status.is-available { color: #168231; }
+.inventory-status.is-low { color: #aa7100; }
+.inventory-status.is-empty { color: #c62828; }
+.inventory-page .inventory-forms form { padding-top: .8rem; }
+.inventory-page .inventory-fields label { font-size: .82rem; font-weight: 500; }
+.inventory-page .inventory-fields input, .inventory-page .inventory-fields select { margin-top: .2rem; padding: .65rem; }
+.inventory-page .inventory-submit { border-radius: 999px; padding: .65rem 1.2rem; font-size: .85rem; font-weight: 500; }
+@media (max-width: 639px) { .inventory-toolbar > label:first-child { flex-basis: 100%; } }
+
+/* Lenguaje visual compartido en el panel administrativo. */
+.admin-page-header { border: 0; }
+.admin-theme .admin-sidebar-nav button { border-radius: 999px; }
+.admin-theme .admin-sidebar-nav button[class*="bg-[#fff4dc]"] { background: #078fe5 !important; color: #fff !important; font-weight: 500; }
+.admin-theme .admin-sidebar-nav button[class*="bg-[#fff4dc]"] span.ml-auto { background: #fff; }
+.admin-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+.admin-content select, .admin-content textarea { border-radius: .65rem; }
+
+.sale-stock { display: inline-flex; align-items: center; border-radius: .6rem; padding: .35rem .55rem; font-size: .75rem; font-weight: 500; white-space: nowrap; }
+.sale-stock.is-available { color: #147a30; background: #e4f7e8; }
+.sale-stock.is-low { color: #946200; background: #fff3ce; }
+.sale-stock.is-empty { color: #b91c1c; background: #fee7e7; }
+
+/* Inicio del panel: accesos directos y resumen sin tarjetas individuales. */
+.admin-home { color: #071e55; padding: 1rem .5rem 2rem; }
+.admin-home-question { margin: .25rem 0 2rem; font-size: clamp(1.65rem, 3vw, 2.35rem); line-height: 1.2; font-weight: 600; }
+.home-shortcut-section + .home-shortcut-section { margin-top: 2.25rem; }
+.home-section-heading { display: flex; align-items: center; gap: .8rem; }
+.home-section-heading > span { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; flex: none; border-radius: 50%; background: #d2efff; color: #087fc7; }
+.home-section-heading h3 { flex: none; font-size: clamp(1rem, 2vw, 1.3rem); font-weight: 600; }
+.home-section-heading i { height: 1px; min-width: 1rem; flex: 1; background: #a8d8f3; }
+.home-shortcuts { display: grid; gap: 1rem; padding: 1.25rem 0 .25rem; }
+.home-shortcuts-daily { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 52rem; margin: auto; }
+.home-shortcuts-management { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.home-shortcut { display: flex; flex-direction: column; align-items: center; gap: .7rem; padding: .5rem .25rem; text-align: center; font-size: .95rem; font-weight: 500; color: #061d70; }
+.home-shortcut-icon { display: grid; place-items: center; width: 5.5rem; height: 5.5rem; border-radius: 50%; background: #d2efff; color: #087fc7; transition: transform .2s, background .2s; }
+.home-shortcut:hover .home-shortcut-icon { transform: translateY(-3px); background: #b7e4fb; }
+.home-shortcut:focus-visible { outline: 2px solid #087fc7; outline-offset: 4px; border-radius: .5rem; }
+.home-summary { display: grid; grid-template-columns: 1.15fr repeat(3, 1fr); align-items: center; gap: 1rem; margin-top: 2.75rem; padding: 1.25rem 1.5rem; border-radius: 1.25rem; background: #d8effd; }
+.home-summary-title { display: flex; align-items: center; gap: .75rem; color: #087fc7; }
+.home-summary-title h3 { color: #061d70; font-size: 1.1rem; font-weight: 600; }
+.home-summary-item { display: flex; flex-direction: column; gap: .2rem; padding-left: 1rem; border-left: 1px solid #a8d8f3; }
+.home-summary-item span { color: #526d80; font-size: .78rem; }
+.home-summary-item strong { color: #061d70; font-size: 1.1rem; font-weight: 600; }
+@media (max-width: 850px) { .home-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } .home-summary-item:nth-child(3) { border-left: 0; padding-left: 0; } }
+@media (max-width: 500px) { .admin-home { padding-inline: 0; } .home-shortcut-icon { width: 4.5rem; height: 4.5rem; } .home-shortcut { font-size: .82rem; } .home-summary { grid-template-columns: 1fr; gap: .8rem; } .home-summary-item { border-left: 0; border-top: 1px solid #a8d8f3; padding: .65rem 0 0; } }
+
+/* Inicio compacto para ver los accesos y el resumen en una pantalla de escritorio. */
+.admin-home { padding: .35rem .5rem .6rem; }
+.admin-home-question { margin: .15rem 0 .85rem; font-size: clamp(1.5rem, 2.6vw, 2rem); }
+.home-shortcut-section + .home-shortcut-section { margin-top: .85rem; }
+.home-section-heading > span { width: 2.3rem; height: 2.3rem; background: #071e55; color: #fff; }
+.home-shortcuts { gap: .4rem; padding: .45rem 0 0; }
+.home-shortcut { gap: .4rem; padding: .2rem; }
+.home-shortcut-icon { width: clamp(3.5rem, 9vh, 4.6rem); height: clamp(3.5rem, 9vh, 4.6rem); background: #071e55; color: #fff; }
+.home-shortcut:hover .home-shortcut-icon { background: #087fc7; }
+.home-summary { margin-top: 1.15rem; padding: .9rem 1.2rem; }
+@media (max-width: 500px) {
+  .admin-home { padding-inline: 0; }
+  .home-shortcut-icon { width: 3.6rem; height: 3.6rem; }
+}
+
+@media (max-width: 600px) {
+  .home-shortcuts-management { gap: .15rem; align-items: start; }
+  .home-shortcuts-management .home-shortcut { min-width: 0; padding: .2rem 0; font-size: .75rem; line-height: 1.2; }
+  .home-shortcuts-management .home-shortcut-icon { width: min(100%, 3rem); height: auto; aspect-ratio: 1; }
+  .home-shortcuts-management svg { width: 58%; height: 58%; }
+  .home-shortcuts-management .home-shortcut > span:last-child { max-width: 100%; hyphens: auto; overflow-wrap: anywhere; }
+}
+
+.admin-home-question { text-align: center; }
+.avena-product-panel footer button { color:#087fc7; padding:.4rem }
+.avena-product-panel footer button:disabled { color:#758598 }
+
+/* Keep the viewport as the scroll container for the sale header and categories. */
+.admin-theme:has(.register-sale), .admin-content:has(.register-sale) { overflow-x: clip; }
+.sale-category-tabs { position: sticky; top: var(--sale-header, 0px); z-index: 20; background: #dcefff; scrollbar-width: none; }
+.sale-category-tabs::-webkit-scrollbar { display: none; }
+@media (min-width: 1024px) {
+  .register-sale > .grid > aside { top: calc(var(--sale-header, 0px) + var(--sale-tabs, 3rem) + .75rem); }
+}

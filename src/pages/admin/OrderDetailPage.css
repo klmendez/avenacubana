@@ -1,0 +1,62 @@
+﻿.order-workspace { max-width: 85rem; margin: auto; color: #102951; }
+.order-heading { padding: .75rem 0 1.25rem; }
+.order-columns { display: grid; gap: 1rem; align-items: start; }
+.order-pane { min-width: 0; padding: 0 clamp(.9rem, 2vw, 1.6rem); background: white; border: 1px solid #c8dfef; border-radius: 1rem; }
+.order-pane > div, .order-pane > section, .order-pane > details { padding-block: 1.15rem; border-top: 1px solid #dbe8f1; }
+.order-pane > :first-child { border-top: 0; }
+.order-pane summary { cursor: pointer; font-weight: 600; }
+.order-pane .justify-between { gap: .75rem; overflow-wrap: anywhere; }
+
+.admin-theme:has(.order-columns), .admin-content:has(.order-columns) { overflow-x: clip; }
+.order-workspace, .cashier-detail { container-type: inline-size; }
+.order-columns { gap: clamp(1rem, 2vw, 2rem); }
+.order-flow { display: grid; gap: 1rem; min-width: 0; }
+.cashier-detail-heading { border-bottom: 1px solid #dbe5ef; margin-bottom: 1rem; }
+.cashier-detail-section { min-width: 0; padding: 1rem; }
+.order-payment-link { display: inline-block; margin-block: .65rem; color: #075e99; font-size: .88rem; text-decoration: underline; }
+
+.order-collections {
+  min-width: 0;
+  scroll-margin-top: calc(var(--admin-header-height, 6rem) + .75rem);
+  padding: clamp(1rem, 2vw, 1.5rem);
+  color: #0b2050;
+  background: white;
+  border: 1px solid #dbe5ef;
+  border-radius: .9rem;
+  box-shadow: 0 3px 12px #13325b0d;
+}
+.order-collections h3 { display: flex; align-items: center; gap: .65rem; font-size: 1.25rem; font-weight: 700; }
+.order-collections h3 svg { flex: none; color: #087fc7; }
+.collection-totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin: 1rem 0; background: #edf7ff; border-radius: .65rem; padding: .8rem 1rem; }
+.collection-totals dt, .collection-history small { display: block; font-size: .8rem; color: #49647b; }
+.collection-totals dd { margin: .2rem 0 0; font-size: 1.18rem; font-weight: 700; overflow-wrap: anywhere; }
+.collection-form { display: grid; gap: 1rem; }
+.collection-form fieldset { min-width: 0; padding: 0 0 .7rem; border-bottom: 1px solid #e1eaf2; }
+.collection-form legend, .collection-amount > label, .collection-history h4 { font-weight: 650; }
+.collection-options { display: flex; flex-wrap: wrap; gap: 0 1.25rem; }
+.collection-options label { display: inline-flex; align-items: center; gap: .45rem; min-height: 44px; cursor: pointer; }
+.collection-options input { width: 1.05rem; height: 1.05rem; accent-color: #008bde; }
+.collection-amount { display: grid; gap: .4rem; }
+.admin-content .collection-amount input[type=number] { width: 100%; min-height: 44px; padding: .55rem .75rem; border: 1px solid #b6ccdd; border-radius: .55rem !important; }
+.collection-fill, .collection-history button { justify-self: start; min-height: 44px; color: #076cab; text-decoration: underline; font-size: .88rem; font-weight: 600; }
+.collection-submit { display: flex; align-items: center; justify-content: center; gap: .5rem; width: 100%; min-height: 46px; border-radius: .65rem; background: #007bc7; color: white; font-weight: 650; }
+.collection-submit:disabled { opacity: .5; }
+.collection-settled { margin-bottom: .8rem; color: #147043; }
+.order-collections [role=alert] { color: #9b311c; }
+.order-collections [role=status]:not(:empty) { margin-top: .75rem; }
+.collection-history { margin-top: 1.1rem; padding-top: .9rem; border-top: 1px solid #dbe5ef; }
+.collection-history li { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem .75rem; padding: .5rem 0; font-size: .88rem; }
+.collection-history li + li { border-top: 1px solid #e4edf5; }
+.collection-history li > span { flex: 1 1 8rem; }
+
+@container (min-width: 44rem) {
+  .order-columns { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+  .order-summary {
+    position: sticky;
+    top: calc(var(--admin-header-height, 6rem) + .75rem);
+    max-height: calc(100dvh - var(--admin-header-height, 6rem) - 1.5rem);
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+  .order-payment-link { display: none; }
+}

@@ -1,0 +1,51 @@
+﻿.admin-theme:has(.cash-sale),
+.admin-theme:has(.cash-sale) .admin-page-header { background: #fff; }
+.cash-sale { container-type: inline-size; color: #0b2050; max-width: 100rem; }
+.cash-sale-layout { display: grid; gap: 1.5rem; align-items: start; }
+.cash-sale-layout > div { min-width: 0; border: 0; }
+.cash-sale .sale-category-tabs { background: white; margin-bottom: 1rem; }
+.cash-sale .sale-category-tabs button { min-height: 44px; }
+.cash-sale .sale-category-tabs [aria-current] { color: #0059bc; border-color: #078fe5; font-weight: 700; }
+.cash-sale-layout > div > label { border: 0; }
+.cash-sale-key { position: absolute; top: 50%; transform: translateY(-50%); right: .65rem; border-radius: .4rem; background: #f1f4f8; padding: .12rem .45rem; font: .78rem system-ui; color: #526582; pointer-events: none; }
+.cash-sale input[placeholder="Buscar producto..."] { padding-right: 4.7rem; }
+.cash-sale-frequent { margin: 1.1rem 0 1.35rem; border: 0; }
+.cash-sale-frequent h3, .cash-sale-selected h4 { font-size: 1rem; font-weight: 700; }
+.cash-sale-frequent h3, .cash-sale-frequent button { display: flex; align-items: center; gap: .45rem; }
+.cash-sale-frequent svg { color: #0088dc; }
+.cash-sale-frequent > div { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: .65rem; }
+.cash-sale-frequent button, .cash-sale-jump { background: #f2f8ff; color: #103c70; border: 1px solid #cce2f4; border-radius: .75rem; padding: .55rem .75rem; font-weight: 500; font-size: .85rem; }
+.cash-sale button:disabled { cursor: default; opacity: .45; }
+.cash-sale [data-sale-category] { border: 0; }
+.cash-sale [data-sale-category] h3 { display: flex; align-items: center; gap: .8rem; border: 0; font-weight: 700; }
+.cash-sale [data-sale-category] h3::after { content: ''; height: 1px; background: #dbe7f2; flex: 1; }
+.cash-sale [data-sale-category] h3 + div > div { padding-block: .65rem; gap: .6rem; }
+.cash-sale [data-sale-category] .sale-stock { border-radius: 2rem; }
+.cash-sale [data-sale-category] .ml-auto button:last-child, .cash-sale aside > button:has(svg) { background: #0088dd; border-radius: .65rem; font-weight: 650; }
+.cash-sale-layout > aside { position: static; background: #fff; border: 1px solid #dbe5ef; box-shadow: 0 3px 12px #13325b0d; padding: clamp(.85rem,1.4vw,1.35rem); border-radius: .9rem; min-width: 0; scroll-margin-top: calc(var(--sale-header, 5rem) + .5rem); }
+.cash-sale-layout > aside > h3 { font-weight: 700; }
+.cash-sale-layout > aside > h3 span { border-radius: 2rem; padding: .3rem .65rem; color: #27496b; background: #e6f3ff; }
+.cash-sale aside fieldset { border-bottom: 1px solid #e1eaf2; padding-bottom: .85rem; }
+.cash-sale aside legend { text-transform: none; font-size: 1rem; }
+.cash-sale aside input[type=radio] { accent-color: #008bde; width: 1.05rem; height: 1.05rem; vertical-align: middle; }
+.cash-sale aside label:has(input[type=radio]) { cursor: pointer; }
+.cash-sale-selected { margin-top: 1.2rem; }
+.cash-sale-selected > p { padding: .7rem 0; color: #566a81; font-size: .85rem; }
+.cash-sale-line { display: grid; grid-template-columns: 2rem minmax(0,1fr) auto auto auto; gap: .45rem; align-items: center; font-size: .82rem; padding: .7rem 0; border-bottom: 1px solid #e4edf5; }
+.cash-sale-line img { width: 2rem; height: 2.35rem; object-fit: contain; }
+.cash-sale-line small { display: block; color: #536882; }
+.cash-sale-stepper { display: flex; align-items: center; border: 1px solid #d5e3ef; border-radius: .45rem; }
+.cash-sale-stepper button { min-width: 1.65rem; min-height: 2rem; }
+.cash-sale-jump { margin-bottom: 1rem; }
+@container (min-width: 48rem) {
+  .cash-sale-layout { grid-template-columns: minmax(0, 1.5fr) minmax(19rem, 1fr); }
+  .cash-sale-layout > aside { position: sticky; top: calc(var(--sale-header, 5rem) + .4rem); max-height: calc(100dvh - var(--sale-header, 5rem) - 1rem); overflow-y: auto; }
+  .cash-sale-jump { display: none; }
+}
+@container (max-width: 32rem) {
+  .cash-sale [data-sale-category] h3 + div > div { display: grid; grid-template-columns: 3rem minmax(0,1fr) auto; }
+  .cash-sale [data-sale-category] h3 + div > div > :first-child { grid-row: span 2; width: 3rem; height: 3rem; }
+  .cash-sale .sale-stock { grid-column: 2; width: fit-content; }
+  .cash-sale [data-sale-category] .ml-auto { grid-column: 3; grid-row: 1 / 3; gap: .2rem; }
+  .cash-sale [data-sale-category] .ml-auto button { width: 2.15rem; }
+}
