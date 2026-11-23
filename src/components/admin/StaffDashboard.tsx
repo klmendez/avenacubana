@@ -69,7 +69,7 @@ export default function StaffDashboard({ cashier }: { cashier: boolean }) {
   useEffect(() => { void supabase?.rpc('staff_greeting').then(({ data }) => setIdentity(data?.[0] ?? null)); }, []);
   const [params] = useSearchParams();
   const { id } = useParams();
-  const available: AdminSection[] = cashier ? ['inicio','registrar-venta','pedidos','inventario'] : ['inicio','tomar-pedido','mesas','inventario'];
+  const available: AdminSection[] = cashier ? ['inicio','registrar-venta','pedidos','breb','inventario'] : ['inicio','tomar-pedido','mesas','inventario'];
   const requested = (id ? 'pedidos' : params.get('seccion')) as AdminSection;
   const section = available.includes(requested) ? requested : 'inicio';
   return <AdminLayout cashierHome={cashier && (section === "inicio" || section === "pedidos")} accountLabel={cashier ? "Usuario en caja" : "Sistema de pedidos"} pageTitle={cashier && id ? "Detalle del pedido" : cashier && section === "pedidos" ? "Pedidos y Mesas" : undefined} pageDescription={cashier && section === "inicio" ? "Panel de caja" : cashier && id ? "Consulta el pedido y registra su cobro." : cashier && section === "pedidos" ? "Gestiona los pedidos, las mesas y el estado de cada venta." : undefined} allowedSections={available.filter(item => item !== 'tomar-pedido')} activeSection={section}>

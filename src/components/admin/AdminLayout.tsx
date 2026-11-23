@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { UserCircle, ChevronDown, BarChart3, Boxes, Calendar, ChevronLeft, ChevronRight, Download, Home, LogOut, Menu, Package, PlusCircle, Star, Tag, UserPlus, Users, Utensils, X } from "lucide-react";
+import { Landmark, UserCircle, ChevronDown, BarChart3, Boxes, Calendar, ChevronLeft, ChevronRight, Download, Home, LogOut, Menu, Package, PlusCircle, Star, Tag, UserPlus, Users, Utensils, X } from "lucide-react";
 import { supabase } from "../../lib/supabase";
+import BrebNotices from "./BrebNotices";
 import AdminNotifications from './AdminNotifications';
 
-export type AdminSection = "inicio" | "mesas" | "tomar-pedido" | "inventario" | "reservas" | "carta-bebidas" | "registrar-venta" | "pedidos-menu" | "pedidos-carta" | "pedidos-bebidas" | "pedidos" | "clientes" | "cumpleanos" | "estadisticas" | "productos" | "categorias" | "promociones" | "menu-dia" | "experiencia" | "resenas" | "usuarios";
+export type AdminSection = "inicio" | "mesas" | "tomar-pedido" | "inventario" | "reservas" | "carta-bebidas" | "registrar-venta" | "pedidos-menu" | "pedidos-carta" | "pedidos-bebidas" | "pedidos" | "clientes" | "cumpleanos" | "estadisticas" | "productos" | "categorias" | "promociones" | "menu-dia" | "experiencia" | "resenas" | "usuarios" | "breb";
 
 type Props = { cashierHome?: boolean; accountLabel?: string; allowedSections?: AdminSection[]; pageTitle?: string; pageDescription?: string; activeSection?: AdminSection; onChangeSection?: (section: AdminSection) => void; onExportCSV?: () => void; children: React.ReactNode };
 
@@ -13,6 +14,7 @@ const sections = [
   { id: "registrar-venta", label: "Registrar venta", icon: PlusCircle },
   { id: "tomar-pedido", label: "Tomar pedido", icon: PlusCircle },
   { id: "mesas", label: "Pedidos por mesas", icon: Utensils },
+  { id: "breb", label: "Avisos Bre-B", icon: Landmark },
   { id: "usuarios", label: "Usuarios", icon: UserPlus },
   { id: "clientes", label: "Clientes", icon: Users },
   { id: "cumpleanos", label: "Cumpleaños", icon: Calendar },
@@ -31,6 +33,7 @@ const primarySections = sections.slice(0, 2);
 const managementSections = sections.slice(2);
 
 const pageDetails: Partial<Record<AdminSection, { description: string; icon: typeof Home }>> = {
+  breb: { description: "Historial de transferencias notificadas por correo.", icon: Landmark },
   inicio: { description: "Todo lo que necesitas para gestionar tu negocio.", icon: Home },
   mesas: { description: "Consulta las mesas y toma pedidos.", icon: Utensils },
   "tomar-pedido": { description: "Selecciona los productos y deja el pedido listo para caja.", icon: PlusCircle },
@@ -114,7 +117,7 @@ export default function AdminLayout({ cashierHome = false, accountLabel, allowed
         <div className="flex min-w-0 items-center gap-3 sm:gap-4"><button type="button" onClick={() => setOpen(true)} className="shrink-0 p-2 text-[#061d70] lg:hidden" aria-label="Abrir navegación"><Menu size={21} /></button><PageIcon size={36} aria-hidden="true" className="shrink-0 text-[#087fc7]" /><div className="min-w-0"><h1 className="text-2xl font-semibold leading-tight text-[#061d70] sm:text-3xl">{pageTitle ?? titles[activeSection] ?? "Administración"}</h1><p className="mt-1 text-sm text-[#526d80]">{pageDescription ?? detail.description}</p></div></div>
         <div className="flex shrink-0 items-center gap-2">{(!allowedSections || cashierHome) && <AdminNotifications onNavigate={onChangeSection} />}{onExportCSV && <button type="button" onClick={onExportCSV} className="inline-flex items-center gap-2 px-2 py-2 text-xs font-medium text-[#061d70] hover:text-[#087fc7]"><Download size={16} /><span className="hidden sm:inline">Exportar</span></button>}{accountLabel ? <details className="cash-account"><summary><UserCircle /><span>{accountLabel}</span><ChevronDown size={16}/></summary><div><p>{userEmail}</p><button type="button" onClick={() => void supabase?.auth.signOut()}>Cerrar sesión</button></div></details> : <span className="hidden max-w-48 truncate text-xs text-[#526d80] md:block">{userEmail}</span>}</div>
       </header>
-      <main className="admin-content px-3 pb-6 pt-1 sm:px-5 lg:px-6">{children}</main>
+      <main className="admin-content px-3 pb-6 pt-1 sm:px-5 lg:px-6">{(!allowedSections || allowedSections.includes("breb")) && <BrebNotices showHistory={activeSection === "breb"} />}{children}</main>
     </div>
   </div>;
 }

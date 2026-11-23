@@ -707,7 +707,7 @@ export default function AdminDashboard() {
 
   const productPreview = catalogProductImage(prodForm.name, prodForm.image);
   return (
-      <AdminLayout accountLabel="Administrador" activeSection={activeTab} onChangeSection={navigateSection} onExportCSV={activeTab === 'resenas' || activeTab.startsWith("pedidos") ? undefined : () => handleExportCSV()}>
+      <AdminLayout accountLabel="Administrador" activeSection={activeTab} onChangeSection={navigateSection} onExportCSV={activeTab === 'breb' || activeTab === 'resenas' || activeTab.startsWith("pedidos") ? undefined : () => handleExportCSV()}>
         {/* ====== Error banner ====== */}
         {error && (
           <div className="mb-4">
