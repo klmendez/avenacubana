@@ -1,3 +1,4 @@
+import { catalogProductImage } from "../lib/catalogFamilies";
 import ScrollableTable from "../components/admin/ScrollableTable";
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -704,6 +705,7 @@ export default function AdminDashboard() {
     document.body.removeChild(link);
   };
 
+  const productPreview = catalogProductImage(prodForm.name, prodForm.image);
   return (
       <AdminLayout accountLabel="Administrador" activeSection={activeTab} onChangeSection={navigateSection} onExportCSV={activeTab === 'resenas' || activeTab.startsWith("pedidos") ? undefined : () => handleExportCSV()}>
         {/* ====== Error banner ====== */}
@@ -1321,8 +1323,8 @@ export default function AdminDashboard() {
                     onFocus={(e) => e.currentTarget.style.borderColor = '#999'}
                     onBlur={(e) => e.currentTarget.style.borderColor = '#e0e0e0'}
                   />
-                  {prodForm.image && (
-                    <img src={prodForm.image} alt="preview" className="mt-2 w-12 h-12 object-cover rounded" />
+                  {productPreview && (
+                    <img src={productPreview} alt="Vista previa del producto" className="mt-2 size-12 object-contain" />
                   )}
                 </div>
                 <div>
@@ -1372,11 +1374,12 @@ export default function AdminDashboard() {
               ) : (
                 <div className="flex flex-col gap-2" style={{ maxHeight: '520px', overflowY: 'auto' }}>
                   {products.map((p) => {
+                    const image = catalogProductImage(p.name, p.image);
                     const catName = categories.find(c => c.id === p.categoryId)?.name || 'Sin categoría';
                     return (
                       <div key={p.id} className="flex items-center gap-3 p-2" style={{ borderBottom: '1px solid #f0f0f0' }}>
-                        {p.image ? (
-                          <img src={p.image} alt={p.name} className="w-12 h-12 object-cover rounded" style={{ flexShrink: 0 }} />
+                        {image ? (
+                          <img src={image} alt={p.name} className="size-12 object-contain" style={{ flexShrink: 0 }} />
                         ) : (
                           <div className="w-12 h-12 flex items-center justify-center" style={{ background: '#f5f5f5', borderRadius: '4px', flexShrink: 0 }}>
                             <span style={{ color: '#ccc', fontSize: '0.75rem' }}>IMG</span>

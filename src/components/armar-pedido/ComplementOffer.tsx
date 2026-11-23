@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Product } from "../../data/products";
-import { familyImage, price, type Family, type OfferKind } from "../../lib/catalogFamilies";
+import { catalogProductImage, price, type Family, type OfferKind } from "../../lib/catalogFamilies";
 import { cop } from "../../lib/format";
 import ActionHint from "../ActionHint";
 
@@ -9,9 +9,9 @@ function OfferRow({ family, first, onAdd }: { family: Family; first: boolean; on
   const option = family.options.find(o => o.product.id === selected) ?? family.options.reduce((best, next) =>
     price(next.product) < price(best.product) ? next : best);
   const product = option.product;
-  const image = familyImage(family, product);
-  return <li className="grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-2 py-3">
-    <img src={image} alt="" loading="lazy" className="size-14 rounded-xl object-cover" />
+  const image = catalogProductImage(product.name, product.image) ?? "/avena-cubana-logo.png";
+  return <li className="grid grid-cols-[clamp(4.5rem,20vw,6rem)_minmax(0,1fr)_auto] items-center gap-2 py-3">
+    <img src={image} alt={`${family.name}, ${option.label}`} loading="lazy" className="aspect-square w-full object-contain" />
     <div className="min-w-0">
       <strong className="block text-sm">{family.name}</strong>
       {family.options.length > 1 ? <select aria-label={`Presentación de ${family.name}`} value={product.id}
@@ -20,7 +20,7 @@ function OfferRow({ family, first, onAdd }: { family: Family; first: boolean; on
       </select> : <small className="block">{option.label}</small>}
       <span className="block text-xs text-slate-600">{cop(price(product))}</span>
     </div>
-    <button type="button" aria-label={`Agregar ${product.name}`} onClick={() => onAdd({ ...product, image })}
+    <button type="button" aria-label={`Agregar ${product.name}`} onClick={() => onAdd(product)}
       className="rounded-full bg-sky-100 px-3 py-2 text-sm font-semibold text-sky-900">
       Agregar {first && <ActionHint step="sugerencia">Suma un extra si te apetece.</ActionHint>}
     </button>

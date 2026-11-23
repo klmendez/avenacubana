@@ -1,9 +1,9 @@
-import { Search } from "lucide-react";
+import { Maximize2, Search, X } from "lucide-react";
 import "./Catalogo.css";
 import ActionHint from "../components/ActionHint";
 import { useEffect, useRef, useState } from "react";
 import { cop } from "../lib/format";
-import { familyImage, fold, groupCatalog, price, type Family } from "../lib/catalogFamilies";
+import { catalogProductImage, fold, groupCatalog, price, type Family } from "../lib/catalogFamilies";
 import { type Product } from "../data/products";
 import { useOrderItems } from "../hooks/useOrderItems";
 import { useStoreProducts } from "../hooks/useStoreProducts";
@@ -12,14 +12,19 @@ type Props = { embedded?: boolean; showHeader?: boolean; productType?: "carta" |
 const tabs = ["Todos", "Avenas", "Sevillanas", "Kumis", "Yogures", "Especialidades", "Acompañantes"];
 function ProductRow({family,add,guided}: {family:Family; guided:boolean; add:(product:Product,qty:number)=>void}) {
   const [id,setId] = useState("");
+  const photoDialog = useRef<HTMLDialogElement>(null);
   const options = family.options;
   const current = options.find(o=>o.product.id===id) || options.find(o=>o.product.disponible && price(o.product)>0) || options[0];
   const item = current.product;
   const unit = price(item);
-  const image = familyImage(family, item);
+  const image = catalogProductImage(item.name, item.image) ?? "/avena-cubana-logo.png";
   return <article data-hint-group className="menu-row">
     <header className="menu-heading">
-      <img src={image} alt="" loading="lazy"/>
+      <button type="button" className="menu-photo" aria-label={`Ampliar foto de ${family.name}, ${current.label}`}
+        aria-haspopup="dialog" onClick={() => photoDialog.current?.showModal()}>
+        <img src={image} alt="" loading="lazy" />
+        <span aria-hidden="true"><Maximize2 size={14} /></span>
+      </button>
       <div><h3>{family.name}</h3><p>{item.description || (family.category === "Avenas" ? "Cremosa y refrescante." : "")}</p></div>
     </header>
     <fieldset className="menu-sizes"><legend>Presentación</legend>
@@ -36,9 +41,18 @@ function ProductRow({family,add,guided}: {family:Family; guided:boolean; add:(pr
     </fieldset>
     {item.disponible && unit>0 && <div className="menu-order">
       <strong>{cop(unit)}</strong>
-      <button type="button" className="menu-add" aria-label={`Agregar ${item.name}`} onClick={()=>add({...item, image},1)}>Agregar <span aria-hidden="true">＋</span>{guided && <ActionHint step="agregar">Toca aquí para agregar esta presentación.</ActionHint>}</button>
+      <button type="button" className="menu-add" aria-label={`Agregar ${item.name}`} onClick={()=>add(item,1)}>Agregar <span aria-hidden="true">＋</span>{guided && <ActionHint step="agregar">Toca aquí para agregar esta presentación.</ActionHint>}</button>
     </div>}
     <div data-hint-slot className="col-span-full" />
+    <dialog ref={photoDialog} className="menu-photo-dialog" aria-label={`Foto de ${family.name}, ${current.label}`}
+      onClick={event => { if (event.target === event.currentTarget) event.currentTarget.close(); }}>
+      <div>
+        <header><strong>{family.name} · {current.label}</strong>
+          <button type="button" aria-label="Cerrar foto" onClick={() => photoDialog.current?.close()}><X size={20} /></button>
+        </header>
+        <img src={image} alt={`${family.name}, ${current.label}`} loading="lazy" />
+      </div>
+    </dialog>
   </article>;
 }
 

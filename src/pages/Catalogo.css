@@ -36,7 +36,6 @@
 .menu-section-title { margin:1.5rem 0 0; padding-bottom:.45rem; font-size:1.55rem; font-weight:750; border-bottom:2px solid #10355b }
 .menu-row { padding:1rem 0; border-bottom:1px solid #cddde8; display:grid; gap:.65rem; min-width:0 }
 .menu-heading { display:flex; gap:.8rem; align-items:center }
-.menu-heading img { width:62px; height:68px; flex:none; object-fit:contain }
 .menu-heading h3 { font-size:1.15rem; font-weight:750; line-height:1.25 }
 .menu-heading p { font-size:.86rem; color:#516677; line-height:1.4 }
 .menu-sizes { min-width:0; margin:0; padding:0; border:0 }
@@ -50,9 +49,16 @@
 .menu-add { min-height:44px; padding:.5rem 1rem; border-radius:.55rem; background:#076ba7; color:white; font-weight:650 }
 
 .menu-section-title { text-align:center; font-size:1.2rem; border-bottom:1px solid #cddde8 }
-.menu-row { grid-template-columns:clamp(56px,18vw,84px) minmax(0,1fr); gap:.25rem .85rem; align-items:start }
+.menu-row { grid-template-columns:clamp(100px, 34vw, 148px) minmax(0,1fr); gap:.25rem .85rem; align-items:start }
 .menu-heading { display:contents }
-.menu-heading img { grid-column:1; grid-row:1 / span 3; width:100%; height:auto; aspect-ratio:1; border-radius:.55rem }
+.public-site .menu-photo { grid-column:1; grid-row:1 / span 3; position:relative; width:100%; padding:0; aspect-ratio:1; overflow:hidden; border-radius:0; cursor:zoom-in }
+.menu-photo img { width:100%; aspect-ratio:1; object-fit:contain }
+.menu-photo > span { position:absolute; right:.3rem; bottom:.3rem; padding:.25rem; border-radius:50%; background:#fffffff2; color:#173955 }
+.menu-photo-dialog { margin:auto; width:min(90vw, 38rem); max-height:92dvh; padding:0; border:0; border-radius:0; background:white; color:#10355b }
+.menu-photo-dialog::backdrop { background:#081e42a8 }
+.menu-photo-dialog header { padding:.4rem .6rem .4rem 1rem; display:flex; align-items:center; justify-content:space-between; gap:1rem }
+.menu-photo-dialog button { flex:none; display:grid; place-items:center; width:44px; height:44px; color:#10355b }
+.menu-photo-dialog img { width:100%; max-height:calc(90dvh - 4rem); object-fit:contain }
 .menu-heading h3 { font-size:1rem }
 .menu-sizes,.menu-order { grid-column:2 }
 .menu-order { flex-wrap:wrap }

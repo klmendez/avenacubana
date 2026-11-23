@@ -1,3 +1,4 @@
+import { catalogProductImage } from "../../lib/catalogFamilies";
 import type { OrderItem } from "../../lib/whatsapp";
 import { cop } from "../../lib/format";
 import { getBasePrice } from "../../lib/pricing";
@@ -42,7 +43,7 @@ export default function ProductConfigSection({
         const price = getBasePrice(item.product, null, item.size);
         return <article data-hint-group key={item.id} className="py-4">
           <div className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-3 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:gap-4">
-            <div className="aspect-square overflow-hidden bg-crema-dark"><ProductImage src={item.product.image ?? "/avena-cubana-logo.png"} alt={item.product.name} className="h-full w-full object-cover" /></div>
+            <div className="aspect-square overflow-hidden bg-crema-dark"><ProductImage src={catalogProductImage(item.product.name, item.product.image) ?? "/avena-cubana-logo.png"} alt={item.product.name} className="h-full w-full object-contain" /></div>
             <div className="min-w-0">
               <div className="flex items-start justify-between gap-3"><div><h3 className="font-semibold leading-tight text-stone-900">{item.product.name}</h3><p className="mt-1 text-sm font-semibold text-rojo">{cop(price)}</p></div><button type="button" onClick={() => removeItem(item.id)} aria-label={`Quitar ${item.product.name} del pedido`} className="rounded-full bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-800 hover:bg-rose-100">Quitar</button></div>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2">

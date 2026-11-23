@@ -1,3 +1,4 @@
+import { catalogProductImage } from "../../lib/catalogFamilies";
 import { useState } from "react";
 import { Archive, Copy, Edit3, Package, Plus, Search } from "lucide-react";
 import { cop } from "../../lib/format";
@@ -37,7 +38,10 @@ export default function ProductList({items, create, edit, duplicate, archive}: P
     {label:'Editar',icon:Edit3,run:()=>edit(item)}, {label:'Duplicar',icon:Copy,run:()=>duplicate(item)},
     {label:'Retirar',icon:Archive,run:()=>archive(item.id)}
   ].map(({label,icon:Icon,run})=><button key={label} title={label+' '+item.name} aria-label={label+' '+item.name} onClick={run} className="rounded-lg p-2 hover:bg-sky-100"><Icon size={17}/></button>)}</div>;
-  const photo = (i:CatalogItem,large=false) => i.image_url ? <img alt="" src={i.image_url} className={large?'h-48 w-full object-contain':'h-11 w-11 object-contain'}/> : <Package aria-hidden="true" className={large?'mx-auto h-32 w-32 text-sky-200':'h-10 w-10 p-2 text-sky-500'}/>;
+  const photo = (i:CatalogItem,large=false) => {
+    const image = catalogProductImage(i.name, i.image_url);
+    return image ? <img alt="" src={image} className={large?'mx-auto size-48 max-w-full object-contain':'h-11 w-11 object-contain'}/> : <Package aria-hidden="true" className={large?'mx-auto h-32 w-32 text-sky-200':'h-10 w-10 p-2 text-sky-500'}/>;
+  };
   if(selected) {
     const first=selected;
     return <section><button onClick={()=>setDetail('')} className="text-sky-700">‹ Productos</button><h2 className="my-3 text-3xl font-bold">{first.name}</h2>

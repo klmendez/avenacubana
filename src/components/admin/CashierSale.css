@@ -32,7 +32,7 @@
 .cash-sale-selected { margin-top: 1.2rem; }
 .cash-sale-selected > p { padding: .7rem 0; color: #566a81; font-size: .85rem; }
 .cash-sale-line { display: grid; grid-template-columns: 2rem minmax(0,1fr) auto auto auto; gap: .45rem; align-items: center; font-size: .82rem; padding: .7rem 0; border-bottom: 1px solid #e4edf5; }
-.cash-sale-line img { width: 2rem; height: 2.35rem; object-fit: contain; }
+.cash-sale-line img { width: 2.35rem; height: 2.35rem; object-fit: contain; }
 .cash-sale-line small { display: block; color: #536882; }
 .cash-sale-stepper { display: flex; align-items: center; border: 1px solid #d5e3ef; border-radius: .45rem; }
 .cash-sale-stepper button { min-width: 1.65rem; min-height: 2rem; }
