@@ -1,3 +1,4 @@
+import { NEQUI_PHONE, paymentMethodLabel } from '../../data/constants';
 import { useState } from 'react';
 import { X, MapPin, Phone, Clock, Package, User, CreditCard, Send } from 'lucide-react';
 import type { PedidoFirestore } from '../../types/order';
@@ -503,7 +504,7 @@ export default function OrderDetailModal({ order, onClose }: OrderDetailModalPro
                       <div className="space-y-2">
                         {order.detallesPago.map((pago, idx) => (
                           <div key={idx} className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
-                            <span className="text-black">{pago.metodo}</span>
+                            <span className="text-black">{paymentMethodLabel(pago.metodo)}</span>
                             <div className="flex items-center gap-2">
                               <span className="font-semibold text-black">{cop(pago.monto)}</span>
                               {order.servicio === 'domicilio' && pago.entregadoDomiciliario && (
@@ -514,7 +515,7 @@ export default function OrderDetailModal({ order, onClose }: OrderDetailModalPro
                         ))}
                       </div>
                     ) : (
-                      <span className="text-black">{order.formaPago}</span>
+                      <span className="text-black">{paymentMethodLabel(order.formaPago)}</span>
                     )}
                   </div>
                 </div>
@@ -562,7 +563,7 @@ export default function OrderDetailModal({ order, onClose }: OrderDetailModalPro
                     ? `\nDescuento: -${cop(order.descuentoTotal!)}`
                     : '';
 
-                  const pagoInfo = `${descuentoInfo}\nTotal: ${cop(order.total)} · ${order.formaPago}`;
+                  const pagoInfo = `${descuentoInfo}\nTotal: ${cop(order.total)} · ${paymentMethodLabel(order.formaPago)}`;
 
                   const presets = [
                     {
@@ -593,7 +594,7 @@ export default function OrderDetailModal({ order, onClose }: OrderDetailModalPro
 
                   const applicablePresets = presets.filter(preset => (preset.label !== 'En camino' || order.servicio === 'domicilio') && (preset.label !== 'Listo para recoger' || order.servicio === 'llevar')).map(preset => {
                     if (order.servicio === 'local' && preset.label === 'Entregado') return { label: 'Agradecimiento', text: `¡Gracias por disfrutar en Avena Cubana Pop, ${order.cliente.nombres}! Esperamos verte pronto.` };
-                    if (preset.label === 'Pago pendiente') return { ...preset, text: `Hola ${order.cliente.nombres}, tu pedido ${order.numeroOrden} tiene un saldo pendiente de ${cop(Math.max(0, order.total - (order.paidTotal ?? 0)))}. Gracias.` };
+                    if (preset.label === 'Pago pendiente') return { ...preset, text: `Hola ${order.cliente.nombres}, tu pedido ${order.numeroOrden} tiene un saldo pendiente de ${cop(Math.max(0, order.total - (order.paidTotal ?? 0)))}. Puedes pagar por Nequi al ${NEQUI_PHONE}. Gracias.` };
                     return preset;
                   });
                   return (

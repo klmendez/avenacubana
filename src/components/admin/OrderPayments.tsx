@@ -1,3 +1,4 @@
+import { NEQUI_PHONE } from '../../data/constants';
 import { Check, ReceiptText } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
@@ -120,6 +121,7 @@ export default function OrderPayments({ order, onChanged, canRefund = true }: { 
               ))}
             </div>
           </fieldset>
+          {!refund && method === 'Transferencia' && <p>Nequi {NEQUI_PHONE}</p>}
           <div className="collection-amount">
             <label htmlFor="collection-amount">{cash ? 'Efectivo recibido' : refund ? 'Importe a devolver' : 'Importe a cobrar'}</label>
             <input id="collection-amount" required min="1" step="1" type="number" inputMode="numeric"

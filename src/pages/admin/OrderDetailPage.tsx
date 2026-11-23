@@ -1,3 +1,4 @@
+import { NEQUI_PHONE, paymentMethodLabel } from '../../data/constants';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -376,7 +377,7 @@ export default function OrderDetailPage() {
                     <div className="space-y-2">
                       {order.detallesPago.map((pago, idx) => (
                         <div key={idx} className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
-                          <span className="text-black">{pago.metodo}</span>
+                          <span className="text-black">{paymentMethodLabel(pago.metodo)}</span>
                           <div className="flex items-center gap-2">
                             <span className="font-semibold text-black">{cop(pago.monto)}</span>
                             {order.servicio === 'domicilio' && pago.entregadoDomiciliario && (
@@ -387,7 +388,7 @@ export default function OrderDetailPage() {
                       ))}
                     </div>
                   ) : (
-                    <span className="text-black">{order.formaPago}</span>
+                    <span className="text-black">{paymentMethodLabel(order.formaPago)}</span>
                   )}
                 </div>
               </div>
@@ -531,7 +532,7 @@ export default function OrderDetailPage() {
                   ? `\nDescuento: -${cop(order.descuentoTotal!)}`
                   : '';
 
-                const pagoInfo = `${descuentoInfo}\nTotal: ${cop(order.total)} · ${order.formaPago}`;
+                const pagoInfo = `${descuentoInfo}\nTotal: ${cop(order.total)} · ${paymentMethodLabel(order.formaPago)}`;
 
                 const presets = [
                   {
@@ -552,7 +553,7 @@ export default function OrderDetailPage() {
                   },
                   {
                     label: 'Pago pendiente',
-                    text: `Hola ${order.cliente.nombres}!\n\nRecordatorio: tu pedido *${order.numeroOrden}* tiene *PAGO PENDIENTE*.\n\nProductos:\n${productosResumen}${pagoInfo}\n\nEnvianos el comprobante por aqui para confirmar. Gracias!`
+                    text: `Hola ${order.cliente.nombres}!\n\nRecordatorio: tu pedido *${order.numeroOrden}* tiene *PAGO PENDIENTE*.\n\nProductos:\n${productosResumen}${pagoInfo}\n\nPuedes pagar por Nequi al ${NEQUI_PHONE}. Envíanos el comprobante para confirmar. Gracias!`
                   },
                   {
                     label: 'Entregado',

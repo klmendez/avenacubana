@@ -1,6 +1,6 @@
 import type { PedidoFirestore, OrderStatus } from '../types/order';
 import { cop } from '../lib/format';
-import { WHATSAPP_PHONE } from '../data/constants';
+import { WHATSAPP_PHONE, NEQUI_PHONE, paymentMethodLabel } from '../data/constants';
 
 export class WhatsAppNotificationService {
   private static readonly BUSINESS_PHONE = `57${WHATSAPP_PHONE}`;
@@ -15,7 +15,7 @@ export class WhatsAppNotificationService {
       `${index + 1}. x${item.qty} ${item.product.name}${item.version ? ` (${item.version})` : ''}${item.size ? ` - ${item.size}` : ''}`
     ).join('\n');
 
-    return `🔔 *NUEVO PEDIDO* 🔔\n\n📋 *Orden:* ${order.numeroOrden}\n👤 *Cliente:* ${order.cliente.nombres}\n📱 *Teléfono:* ${order.cliente.celular}\n\n🛍️ *Productos:*\n${items}\n\n💰 *Total:* ${cop(order.total)}\n💳 *Pago:* ${order.formaPago}\n🚚 *Servicio:* ${order.servicio === 'domicilio' ? 'Domicilio' : 'Para llevar'}\n\n${order.servicio === 'domicilio' ? `📍 *Dirección:*\n${order.cliente.direccion}` : ''}\n\n⚡ *Estado:* ${order.estado === 'no_pagado' ? 'Pendiente de pago' : 'Pagado'}\n\n🌶️ ¡Nuevo Avena Cubana Pop!`;
+    return `🔔 *NUEVO PEDIDO* 🔔\n\n📋 *Orden:* ${order.numeroOrden}\n👤 *Cliente:* ${order.cliente.nombres}\n📱 *Teléfono:* ${order.cliente.celular}\n\n🛍️ *Productos:*\n${items}\n\n💰 *Total:* ${cop(order.total)}\n💳 *Pago:* ${paymentMethodLabel(order.formaPago)}\n🚚 *Servicio:* ${order.servicio === 'domicilio' ? 'Domicilio' : 'Para llevar'}\n\n${order.servicio === 'domicilio' ? `📍 *Dirección:*\n${order.cliente.direccion}` : ''}\n\n⚡ *Estado:* ${order.estado === 'no_pagado' ? 'Pendiente de pago' : 'Pagado'}\n\n🌶️ ¡Nuevo Avena Cubana Pop!`;
   };
 
   // Enviar notificación al cliente sobre cambio de estado
@@ -24,7 +24,7 @@ export class WhatsAppNotificationService {
     const code = order.numeroOrden;
     const destination = order.servicio === 'local' ? 'Te lo serviremos en Avena Cubana Pop.' : order.servicio === 'llevar' ? 'Te avisaremos cuando esté listo para recoger.' : 'Lo llevaremos a tu dirección.';
     const messages: Record<OrderStatus, string> = {
-      no_pagado: `Hola ${name}, el pedido ${code} tiene un saldo pendiente de ${cop(Math.max(0, order.total - (order.paidTotal ?? 0)))}. Gracias por elegir Avena Cubana Pop.`,
+      no_pagado: `Hola ${name}, el pedido ${code} tiene un saldo pendiente de ${cop(Math.max(0, order.total - (order.paidTotal ?? 0)))}. Puedes pagar por Nequi al ${NEQUI_PHONE}. Gracias por elegir Avena Cubana Pop.`,
       pagado: `Hola ${name}, actualizamos el estado del pedido ${code}. ${destination} Gracias por elegir Avena Cubana Pop.`,
       preparando: `Hola ${name}, estamos preparando tu pedido ${code}. ${destination}`,
       en_camino: order.servicio === 'domicilio' ? `Hola ${name}, tu pedido ${code} va en camino${order.cliente.direccion ? ` a ${order.cliente.direccion}` : ''}.` : order.servicio === 'llevar' ? `Hola ${name}, tu pedido ${code} está listo para recoger en Avena Cubana Pop.` : `Hola ${name}, tu pedido ${code} está listo para servir en Avena Cubana Pop.`,
@@ -69,7 +69,7 @@ export class WhatsAppNotificationService {
       `${index + 1}. x${item.qty} ${item.product.name}${item.version ? ` (${item.version})` : ''}${item.size ? ` - ${item.size}` : ''}`
     ).join('\n');
 
-    return `🌶️ *Nuevo Pedido - Avena Cubana Pop* 🌶️\n\n📋 *Número:* ${order.numeroOrden}\n👤 *Cliente:* ${order.cliente.nombres}\n📱 *Teléfono:* ${order.cliente.celular}\n\n🛍️ *Productos:*\n${items}\n\n💰 *Total:* ${cop(order.total)}\n💳 *Pago:* ${order.formaPago}\n🚚 *Servicio:* ${order.servicio === 'domicilio' ? 'Domicilio' : 'Para llevar'}\n\n${order.servicio === 'domicilio' ? `📍 *Dirección:*\n${order.cliente.direccion}\n${order.cliente.coordenadas ? '📱 Ubicación compartida en tiempo real' : ''}` : ''}\n\n✅ *Confirma este pedido para continuar*\n\n¡Gracias por elegir Avena Cubana Pop! 🔥`;
+    return `🌶️ *Nuevo Pedido - Avena Cubana Pop* 🌶️\n\n📋 *Número:* ${order.numeroOrden}\n👤 *Cliente:* ${order.cliente.nombres}\n📱 *Teléfono:* ${order.cliente.celular}\n\n🛍️ *Productos:*\n${items}\n\n💰 *Total:* ${cop(order.total)}\n💳 *Pago:* ${paymentMethodLabel(order.formaPago)}\n🚚 *Servicio:* ${order.servicio === 'domicilio' ? 'Domicilio' : 'Para llevar'}\n\n${order.servicio === 'domicilio' ? `📍 *Dirección:*\n${order.cliente.direccion}\n${order.cliente.coordenadas ? '📱 Ubicación compartida en tiempo real' : ''}` : ''}\n\n✅ *Confirma este pedido para continuar*\n\n¡Gracias por elegir Avena Cubana Pop! 🔥`;
   }
 
   // Mensajes predefinidos comunes

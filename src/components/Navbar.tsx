@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { Menu, ShoppingBag, X } from "lucide-react";
+import { replayGuide } from "../hooks/useGuideVersion";
+import { CircleHelp, Menu, ShoppingBag, X } from "lucide-react";
 
 const links = [["/", "Inicio"], ["/productos", "Productos"], ["/contacto", "Contacto"]] as const;
 
@@ -32,6 +33,10 @@ export default function Navbar() {
         {links.map(([to, label]) => <NavLink key={to} to={to} end={to === "/"} className={({ isActive }) => `text-sm font-semibold transition ${isActive ? "text-rojo" : "text-stone-600 hover:text-rojo"}`}>{label}</NavLink>)}
       </nav>
       <div className="flex items-center gap-2">
+        {(["/", "/productos", "/contacto", "/resenas"].includes(location.pathname) || location.pathname.startsWith("/armar")) &&
+          <button type="button" onClick={() => { setOpen(false); replayGuide(); }} className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-sky-900">
+            <CircleHelp size={16} aria-hidden="true" /> Ver guía
+          </button>}
         <Link to="/armar" className="hidden items-center gap-2 rounded-full bg-rojo px-5 py-2.5 text-sm font-semibold text-crema transition hover:bg-rojo-dark sm:inline-flex"><ShoppingBag size={16} /> Mi pedido</Link>
         <button ref={menuButton} aria-expanded={open} aria-controls={open ? 'menu-movil' : undefined} type="button" onClick={() => setOpen((value) => !value)} className="p-2 text-rojo lg:hidden" aria-label={open ? "Cerrar menú" : "Abrir menú"}>{open ? <X size={24} /> : <Menu size={24} />}</button>
       </div>

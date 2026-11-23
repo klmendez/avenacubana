@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import ActionHint from "./ActionHint";
 import { ShoppingBag } from "lucide-react";
 
 function savedCount() {
@@ -41,13 +42,12 @@ export default function CartBubble() {
 
   if (!count || pathname.startsWith("/admin") || pathname.startsWith("/armar")) return null;
 
-  return <div className="public-cart-bar fixed inset-x-0 bottom-0 z-40 bg-crema/95 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur">
-    {justAdded && <p role="status" className="mx-auto mb-2 w-fit animate-bounce rounded-full bg-[#fff4dc] px-4 py-2 text-center text-sm font-semibold text-[#061d70] shadow-md">
-      ¡Producto agregado! Toca aquí para continuar
-    </p>}
-    <Link to="/armar/personalizar" onClick={() => setJustAdded(false)} className={`mx-auto flex min-h-14 max-w-xl items-center justify-center gap-3 rounded-xl bg-rojo px-4 py-3 text-sm font-medium text-crema shadow-lg transition hover:bg-rojo-dark ${justAdded ? "ring-4 ring-amber-400 ring-offset-2 ring-offset-crema" : ""}`}>
+  return <div data-hint-group className="public-cart-bar fixed inset-x-0 bottom-0 z-40 bg-crema/95 px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur">
+    <div data-hint-slot />
+    <Link to="/armar/personalizar" onClick={() => setJustAdded(false)} className={`mx-auto flex min-h-14 max-w-xl items-center justify-center gap-3 rounded-full bg-rojo px-4 py-3 text-sm font-medium text-crema shadow-lg transition hover:bg-rojo-dark ${justAdded ? "ring-2 ring-sky-500 ring-offset-2 ring-offset-crema" : ""}`}>
       <ShoppingBag size={22} aria-hidden="true" />
       <span>{justAdded ? "Ver pedido · Continuar" : `Ver pedido · ${count} ${count === 1 ? 'producto' : 'productos'}`}</span>
+      {pathname === "/productos" && <ActionHint step="carrito">Toca aquí para revisar tu pedido.</ActionHint>}
     </Link>
   </div>;
 }

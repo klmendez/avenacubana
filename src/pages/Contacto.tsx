@@ -1,3 +1,4 @@
+import ActionHint from "../components/ActionHint";
 import { FiInstagram, FiMapPin } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import { INSTAGRAM, INSTAGRAM_URL, WHATSAPP_PHONE, NEQUI_PHONE, BUSINESS_ADDRESS, BUSINESS_MAP_URL } from "../data/constants";
@@ -15,7 +16,8 @@ export default function Contacto() {
           </p>
         </header>
 
-        <div className="divide-y divide-gray-200">
+        <div data-hint-group className="divide-y divide-gray-200">
+          <div data-hint-slot />
           {INSTAGRAM_URL && <a
             href={INSTAGRAM_URL}
             target="_blank"
@@ -44,6 +46,7 @@ export default function Contacto() {
                 <div className="text-sm text-gray-500">+57 {WHATSAPP_PHONE}</div>
               </div>
             </div>
+            <ActionHint step="contacto">Escríbenos por WhatsApp.</ActionHint>
           </a>
 
           <div className="flex items-center justify-between gap-4 py-5">
@@ -66,6 +69,7 @@ export default function Contacto() {
                 <div className="text-sm text-gray-500">{BUSINESS_ADDRESS}</div>
               </div>
             </div>
+            <ActionHint step="mapa">Abre la ubicación en el mapa.</ActionHint>
           </a>
         </div>
       </div>

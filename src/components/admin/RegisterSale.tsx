@@ -1,3 +1,4 @@
+import { paymentMethodLabel } from '../../data/constants';
 ﻿import SaleTicket, { type Ticket } from "./SaleTicket";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Coffee, Sandwich, Search, ShoppingBag, ShoppingCart, Store, Bike, Trash2, Zap } from "lucide-react";
@@ -279,7 +280,7 @@ export default function RegisterSale({ staff = false, orderOnly = false, cashier
           <label className="flex items-start gap-2"><input type="radio" name="collectWhen" checked={collectNow === true} onChange={() => setCollectNow(true)} /> <span>Cobrar ahora <small className="block text-[#526d80]">Registra el cobro completo junto con el pedido.</small></span></label>
           <label className="flex items-start gap-2"><input type="radio" name="collectWhen" checked={collectNow === false} onChange={() => setCollectNow(false)} /> <span>Después, en caja <small className="block text-[#526d80]">Queda en Pedidos como pendiente de pago.</small></span></label>
         </fieldset>}
-        {!orderOnly && collectNow !== null && <label className="mt-4 block text-xs font-semibold uppercase">{collectNow ? "Método de pago" : "Método previsto"}<select value={payment} onChange={event => setPayment(event.target.value as typeof payment)} className="mt-2 w-full border bg-white px-3 py-2"><option>Efectivo</option><option>Transferencia</option></select></label>}
+        {!orderOnly && collectNow !== null && <label className="mt-4 block text-xs font-semibold uppercase">{collectNow ? "Método de pago" : "Método previsto"}<select value={payment} onChange={event => setPayment(event.target.value as typeof payment)} className="mt-2 w-full border bg-white px-3 py-2"><option>Efectivo</option><option value="Transferencia">{paymentMethodLabel("Transferencia")}</option></select></label>}
         {!orderOnly && collectNow === false && <p className="mt-1 text-xs text-[#526d80]">Puedes registrar un método diferente cuando cobres en caja.</p>}
         </>}
         {cashier ? <section className="cash-sale-selected">

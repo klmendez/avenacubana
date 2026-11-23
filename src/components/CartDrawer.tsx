@@ -1,9 +1,10 @@
+import ActionHint from "./ActionHint";
 import { useState, useEffect, useRef } from 'react';
 import { X, MapPin, Clock, AlertCircle, CheckCircle, Star } from 'lucide-react';
 import { OrderService } from '../services/orderService';
 import { completeSubmission, submissionIdentity } from '../lib/submission';
 import { supabase } from '../lib/supabase';
-import { waLink } from '../data/constants';
+import { waLink, paymentMethodLabel } from '../data/constants';
 import { LocationService } from '../services/locationService';
 import { formatServiceLabel, type OrderItem, type PaymentMethod, type Service } from '../lib/whatsapp';
 import type { CustomerLocation } from '../types/order';
@@ -211,7 +212,7 @@ export default function CartDrawer({
       setConfirmedDetails({ items: structuredClone(items), subtotal, delivery, total, descuentoTotal, service, tableNumber, address, barrio: barrio?.name || '', paymentMethod });
       const receipt = JSON.parse(sessionStorage.getItem('avena-cubana-order-receipt') || '{}');
       setConfirmedOrderNumber(receipt.order_number || numeroOrden);
-      setWhatsappUrl(waLink(`Hola, registré el pedido ${receipt.order_number || numeroOrden} a nombre de ${name.trim()}. Total: ${cop(total)}. ${formatServiceLabel(service)}.`));
+      setWhatsappUrl(waLink(`Hola, registré el pedido ${receipt.order_number || numeroOrden} a nombre de ${name.trim()}. Total: ${cop(total)}. ${formatServiceLabel(service)}. Pago: ${paymentMethodLabel(paymentMethod)}.`));
       setSubmitStatus('success');
 
       
@@ -324,7 +325,7 @@ export default function CartDrawer({
             </div>
           )}
           {submitStatus === 'success' && (
-            <div className="absolute inset-0 z-20 flex flex-col overflow-y-auto bg-crema px-6 pb-10 pt-20 text-center">
+            <div data-hint-group className="absolute inset-0 z-20 flex flex-col overflow-y-auto bg-crema px-6 pb-10 pt-20 text-center">
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-rojo text-crema">
                 <CheckCircle size={42} strokeWidth={1.8} />
               </div>
@@ -339,7 +340,8 @@ export default function CartDrawer({
                 </div>
               )}
               <div className="mt-auto space-y-3">
-                {whatsappUrl && <a href={whatsappUrl} target="_blank" rel="noreferrer" className="block w-full border border-rojo px-5 py-3.5 font-semibold text-rojo">Compartir pedido por WhatsApp</a>}
+                <div data-hint-slot />
+                {whatsappUrl && <a href={whatsappUrl} target="_blank" rel="noreferrer" className="block w-full border border-rojo px-5 py-3.5 font-semibold text-rojo">Compartir pedido por WhatsApp{!confirmationPanel && <ActionHint step="compartir">Envía una copia por WhatsApp.</ActionHint>}</a>}
                 <button type="button" onClick={() => setConfirmationPanel('details')} className="w-full border border-rojo px-5 py-3 text-sm font-semibold text-rojo">Ver detalle de mi pedido</button>
                 <button type="button" onClick={() => setConfirmationPanel('review')} className="w-full border border-rojo px-5 py-3 text-sm font-semibold text-rojo">Dejar reseña</button>
                 <button type="button" onClick={() => { onClose(); window.location.assign('/'); }} className="w-full bg-rojo px-5 py-3.5 text-sm font-semibold text-crema">
@@ -363,7 +365,7 @@ export default function CartDrawer({
               </form> : confirmedDetails && <div className="mt-4 text-sm">
                 <p className="text-stone-600">Pedido {confirmedOrderNumber}</p><div className="mt-3 divide-y border-y border-rojo/15">{confirmedDetails.items.map(item => <div key={item.id} className="py-3"><div className="flex justify-between gap-3"><b>{item.qty} × {item.product.name}</b><b className="shrink-0">{cop(item.line ?? item.baseLine)}</b></div>{item.product.dailyMenuId && item.product.description && <p className="mt-1 text-xs text-stone-600">{item.product.description}</p>}{item.note?.trim() && <p className="mt-1 whitespace-pre-line text-xs text-stone-600">{item.note}</p>}</div>)}</div>
                 <div className="mt-3 space-y-2"><p className="flex justify-between"><span>Subtotal</span><span>{cop(confirmedDetails.subtotal)}</span></p><p className="flex justify-between"><span>Domicilio</span><span>{cop(confirmedDetails.delivery)}</span></p>{confirmedDetails.descuentoTotal > 0 && <p className="flex justify-between"><span>Descuento</span><span>−{cop(confirmedDetails.descuentoTotal)}</span></p>}<p className="flex justify-between border-t border-rojo/15 pt-2 text-base font-semibold"><span>Total</span><span>{cop(confirmedDetails.total)}</span></p></div>
-                <div className="mt-4 space-y-1 text-stone-600"><p>Servicio: {formatServiceLabel(confirmedDetails.service)}{confirmedDetails.service === 'local' && confirmedDetails.tableNumber ? ` · Mesa ${confirmedDetails.tableNumber}` : ''}</p>{confirmedDetails.service === 'domicilio' && <p>Entrega: {confirmedDetails.address}{confirmedDetails.barrio ? ` · ${confirmedDetails.barrio}` : ''}</p>}<p>Medio de pago: {confirmedDetails.paymentMethod}</p></div>
+                <div className="mt-4 space-y-1 text-stone-600"><p>Servicio: {formatServiceLabel(confirmedDetails.service)}{confirmedDetails.service === 'local' && confirmedDetails.tableNumber ? ` · Mesa ${confirmedDetails.tableNumber}` : ''}</p>{confirmedDetails.service === 'domicilio' && <p>Entrega: {confirmedDetails.address}{confirmedDetails.barrio ? ` · ${confirmedDetails.barrio}` : ''}</p>}<p>Medio de pago: {paymentMethodLabel(confirmedDetails.paymentMethod)}</p></div>
                 <button type="button" onClick={() => setConfirmationPanel(null)} className="mt-5 w-full border border-rojo px-4 py-3 font-semibold text-rojo">Volver a la confirmación</button>
               </div>}
             </div>
@@ -480,7 +482,7 @@ export default function CartDrawer({
                     {reference && <div><span className="font-semibold">Referencia:</span> {reference}</div>}
                   </>
                 )}
-                <div><span className="font-semibold">Pago:</span> {paymentMethod}</div>
+                <div><span className="font-semibold">Pago:</span> {paymentMethodLabel(paymentMethod)}</div>
                 {comments && <div><span className="font-semibold">Comentarios:</span> {comments}</div>}
               </div>
             </div>

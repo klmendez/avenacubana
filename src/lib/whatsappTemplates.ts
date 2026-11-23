@@ -1,3 +1,4 @@
+import { NEQUI_PHONE, paymentMethodLabel } from '../data/constants';
 import type { PedidoFirestore } from '../types/order';
 import type { FirestoreClient } from '../services/clientService';
 import { cop } from './format';
@@ -14,11 +15,11 @@ export function buildOrderQuickMessages(order: PedidoFirestore & { id: string })
   const messages: QuickMessage[] = [
     {
       label: '✅ Confirmar pedido',
-      message: `Hola ${nombre}! Confirmamos tu pedido ${codigo} por ${cop(order.total)}${descuentoLinea}. ¡Gracias por tu compra! 🌶️`,
+      message: `Hola ${nombre}! Confirmamos tu pedido ${codigo} por ${cop(order.total)}${descuentoLinea}. Pago: ${paymentMethodLabel(order.formaPago)}. ¡Gracias por tu compra! 🌶️`,
     },
     {
       label: '💳 Recordar pago',
-      message: `Hola ${nombre}, tu pedido ${codigo} tiene un saldo pendiente de ${cop(Math.max(0, order.total - (order.paidTotal ?? 0)))}. Gracias.`,
+      message: `Hola ${nombre}, tu pedido ${codigo} tiene un saldo pendiente de ${cop(Math.max(0, order.total - (order.paidTotal ?? 0)))}. Puedes pagar por Nequi al ${NEQUI_PHONE}. Gracias.`,
     },
     {
       label: '💛 Agradecimiento',

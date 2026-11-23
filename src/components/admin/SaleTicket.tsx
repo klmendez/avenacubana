@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { BUSINESS_ADDRESS, WHATSAPP_PHONE } from '../../data/constants';
+import { BUSINESS_ADDRESS, WHATSAPP_PHONE, paymentMethodLabel } from '../../data/constants';
 import { cop } from '../../lib/format';
 import { getBasePrice } from '../../lib/pricing';
 import type { Quote } from '../../hooks/useServerQuote';
@@ -41,9 +41,9 @@ export default function SaleTicket({ ticket }: { ticket: Ticket }) {
     {quote.descuentoTotal > 0 && <div>Descuento: −{cop(quote.descuentoTotal)}</div>}
     {quote.delivery > 0 && <div>Domicilio: {cop(quote.delivery)}</div>}
     <p className="ticket-total"><strong>Total: {cop(quote.total)}</strong><br/>{ticket.collection
-      ? <>Cobro registrado: {cop(ticket.collection.amount)} · {ticket.payment}
+      ? <>Cobro registrado: {cop(ticket.collection.amount)} · {paymentMethodLabel(ticket.payment)}
           {ticket.collection.cashDetail && <><br/>{ticket.collection.cashDetail}</>}</>
-      : <>{ticket.paid ? 'Cobrado' : 'Pendiente de pago'} · {ticket.payment}</>}</p>
+      : <>{ticket.paid ? 'Cobrado' : 'Pendiente de pago'} · {paymentMethodLabel(ticket.payment)}</>}</p>
     <footer>{BUSINESS_ADDRESS}<br/>{WHATSAPP_PHONE}<br/><strong>¡Gracias por tu compra!</strong></footer>
   </article>, document.body);
 }

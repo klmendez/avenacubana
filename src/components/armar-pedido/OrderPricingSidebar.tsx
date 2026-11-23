@@ -1,3 +1,4 @@
+import ActionHint from "../ActionHint";
 import type { OrderItem } from "../../lib/whatsapp";
 import { cop } from "../../lib/format";
 import { toppingsNames, extrasLine } from "./utils";
@@ -48,7 +49,7 @@ export default function OrderPricingSidebar({
   couponError = null,
 }: Props) {
   return (
-    <aside className="lg:sticky lg:top-24 h-fit">
+    <aside data-hint-group className="lg:sticky lg:top-24 h-fit">
       <div className="border-b border-gray-200 pb-3">
         <div className="text-sm font-semibold">Resumen</div>
         <div className="text-xs text-gray-500">Detalle de precios</div>
@@ -214,9 +215,10 @@ export default function OrderPricingSidebar({
           canSend ? "bg-rojo text-white hover:bg-rojo-dark" : "border border-gray-300 text-gray-300 cursor-not-allowed",
         ].join(" ")}
       >
-        Confirmar pedido
+        Confirmar pedido {canSend && <ActionHint step="confirmar">Confirma si todo está correcto.</ActionHint>}
       </button>
 
+      <div data-hint-slot />
       {!canSend ? <div className="mt-2 text-sm text-gray-500">{sendDisabledHint}</div> : null}
     </aside>
   );

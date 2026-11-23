@@ -1,4 +1,4 @@
-import { NEQUI_PHONE } from "../data/constants";
+import { paymentMethodLabel } from "../data/constants";
 import type { Barrio } from "../data/barrios";
 import { cop } from "./format";
 import type { Product, Size, Version } from "../data/products";
@@ -284,9 +284,7 @@ export function buildWhatsAppMessage(args: {
 
   const paymentMethodSection = [
     section(`${payEmoji} Método de pago`),
-    `*${paymentMethod}*`,
-    "",
-    `Nequi / Llave: *${NEQUI_PHONE}*`,
+    `*${paymentMethodLabel(paymentMethod)}*`,
     "",
     paymentMethod === "Transferencia"
       ? `📎 Envíanos el comprobante para confirmar tu pedido.`

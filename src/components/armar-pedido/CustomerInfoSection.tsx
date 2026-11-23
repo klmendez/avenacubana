@@ -1,3 +1,4 @@
+import ActionHint from "../ActionHint";
 import { useEffect, useState, useCallback, useRef, type ReactNode } from "react";
 import { User, Phone, MapPin, Truck, Store, CreditCard, Banknote, MessageSquare, Navigation, X, CheckCircle2, Search, ExternalLink, History, Plus, Cake, Mail } from "lucide-react";
 
@@ -36,23 +37,26 @@ function StepHeader({ n, children }: { n: number; children: ReactNode }) {
   );
 }
 
-function NextButton({ onClick }: { onClick: () => void }) {
+function NextButton({ onClick, step, busy = false }: { onClick: () => void; step: "servicio" | "personal"; busy?: boolean }) {
   return (
-    <div className="flex justify-end border-t border-gray-100 pt-5">
+    <div data-hint-group className="flex flex-wrap justify-end border-t border-gray-100 pt-5">
       <button
         type="button"
         onClick={onClick}
+        disabled={busy}
         className="min-h-11 w-full rounded-full bg-rojo px-5 text-sm font-medium text-crema transition-colors hover:bg-rojo-dark active:bg-rojo-dark sm:w-auto"
       >
-        Siguiente <span aria-hidden="true">→</span>
+        {busy ? "Consultando…" : "Siguiente"} <span aria-hidden="true">→</span>
+        <ActionHint step={step}>{step === "servicio" ? "Elige el servicio y continúa." : "Revisa tu nombre y teléfono."}</ActionHint>
       </button>
+      <div data-hint-slot className="basis-full" />
     </div>
   );
 }
 
-function BackNextButtons({ onBack, onNext }: { onBack: () => void; onNext: () => void }) {
+function BackNextButtons({ onBack, onNext, step }: { onBack: () => void; onNext: () => void; step: "entrega" | "pago" }) {
   return (
-    <div className="flex gap-2 border-t border-gray-100 pt-5">
+    <div data-hint-group className="flex flex-wrap gap-2 border-t border-gray-100 pt-5">
       <button
         type="button"
         onClick={onBack}
@@ -66,7 +70,9 @@ function BackNextButtons({ onBack, onNext }: { onBack: () => void; onNext: () =>
         className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-rojo px-5 text-sm font-medium text-crema transition-colors hover:bg-rojo-dark active:bg-rojo-dark"
       >
         Siguiente <span aria-hidden="true">→</span>
+        <ActionHint step={step}>{step === "pago" ? "Revisa el pago y pasa al resumen." : "Verifica tu dirección y continúa."}</ActionHint>
       </button>
+      <div data-hint-slot className="basis-full" />
     </div>
   );
 }
@@ -394,7 +400,7 @@ export default function CustomerInfoSection({
             })}
           </div>
           {service === "local" && <label className="my-4 block text-sm font-semibold text-rojo-dark">¿En qué mesa estás?<select id="customer-table" aria-label="Número de mesa" aria-invalid={showFieldErrors && errors.tableNumber} value={tableNumber} onChange={event => setTableNumber(event.target.value)} className="mt-2 block w-full border border-rojo/25 bg-white px-3 py-3 text-sm"><option value="">Selecciona tu mesa</option>{Array.from({ length: 5 }, (_, index) => <option key={index + 1} value={index + 1}>Mesa {index + 1}</option>)}</select>{showFieldErrors && errors.tableNumber && <span className="mt-1 block text-xs text-red-600">Selecciona tu mesa para continuar.</span>}</label>}
-          <NextButton onClick={goNextSubStep} />
+          <NextButton step="servicio" onClick={goNextSubStep} />
         </div>
       ) : null}
 
@@ -546,7 +552,7 @@ export default function CustomerInfoSection({
             </div>
           </div>
 
-          <NextButton onClick={goNextSubStep} />
+          <NextButton busy={lookupLoading} step="personal" onClick={goNextSubStep} />
         </>
       ) : null}
 
@@ -776,6 +782,7 @@ export default function CustomerInfoSection({
 
             {/* Ubicación */}
             <div>
+              <div data-hint-group>
               <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 sm:text-xs">
                 <Navigation size={12} className="inline mr-1 -mt-0.5" />Ubicación (opcional)
               </label>
@@ -804,6 +811,7 @@ export default function CustomerInfoSection({
                     <>
                       <Navigation size={14} />
                       Agregar mi ubicación actual
+                      <ActionHint step="localizar">Comparte tu ubicación si quieres.</ActionHint>
                     </>
                   )}
                 </button>
@@ -841,6 +849,8 @@ export default function CustomerInfoSection({
                 </div>
               )}
 
+              <div data-hint-slot />
+              </div>
               {locationError ? (
                 <div className="mt-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
                   {locationError}. Puedes continuar con tu dirección.
@@ -849,7 +859,7 @@ export default function CustomerInfoSection({
             </div>
           </div>
 
-          <BackNextButtons onBack={goBackSubStep} onNext={goNextSubStep} />
+          <BackNextButtons step="entrega" onBack={goBackSubStep} onNext={goNextSubStep} />
         </>
       ) : null}
 
@@ -916,7 +926,7 @@ export default function CustomerInfoSection({
             </div>
           </div>
 
-          <BackNextButtons onBack={goBackSubStep} onNext={onComplete} />
+          <BackNextButtons step="pago" onBack={goBackSubStep} onNext={onComplete} />
         </>
       ) : null}
     </section>

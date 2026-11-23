@@ -1,10 +1,10 @@
+import ActionHint from "../components/ActionHint";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation as useRouterLocation, useNavigate, useSearchParams } from "react-router-dom";
 import type { Product } from "../data/products";
 import { NEQUI_PHONE } from "../data/constants";
-import { isFixedPrice } from "../data/products";
-import { cop } from "../lib/format";
-import { getBasePrice } from "../lib/pricing";
+import { groupCatalog, price, productKind, type OfferKind } from "../lib/catalogFamilies";
+import ComplementOffer from "../components/armar-pedido/ComplementOffer";
 import { type PaymentMethod, type Service } from "../lib/whatsapp";
 
 import ArmarPedidoHeader from "../components/armar-pedido/ArmarPedidoHeader";
@@ -32,7 +32,7 @@ type StepId = (typeof STEP_SEQUENCE)[number];
 
 const STEP_META: Record<StepId, { title: string; description: string }> = {
   productos: { title: "Elige", description: "Agrega productos" },
-  configuracion: { title: "Personaliza", description: "Ajusta cada uno" },
+  configuracion: { title: "Revisa tu pedido", description: "Cantidades y notas" },
   datos: { title: "Datos", description: "Tu info y envío" },
   resumen: { title: "Resumen", description: "Confirma y envía" },
 };
@@ -54,7 +54,7 @@ export default function ArmarPedido() {
 
   const { items, addProduct, updateItem, duplicateItem, removeItem } =
     useOrderItems();
-  const { products: storeProducts } = useStoreProducts();
+  const { products: storeProducts, loading: catalogLoading } = useStoreProducts();
   const {
     barrio,
     setBarrio,
@@ -112,17 +112,20 @@ export default function ArmarPedido() {
   const [showConfigWarning, setShowConfigWarning] = useState(false);
   const [focusRequest, setFocusRequest] = useState<CustomerInfoFocusRequest>(null);
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
-  const [showBeverageOffer, setShowBeverageOffer] = useState(false);
-  const beveragePanel = useRef<HTMLDivElement>(null);
-  useModalFocus(showBeverageOffer, beveragePanel, () => setShowBeverageOffer(false));
-  const [beverageOfferAnswered, setBeverageOfferAnswered] = useState(false);
-  const beverages = storeProducts
-    .filter(product => product.categoryId?.startsWith('bebida-') && product.category === 'frutafresh' && isFixedPrice(product.prices) && product.prices.fijo > 0)
-    .sort((a, b) => getBasePrice(a, null, null) - getBasePrice(b, null, null) || a.name.localeCompare(b.name, 'es'));
-  const hasBeverage = items.some(item => item.product.categoryId?.startsWith('bebida-'));
+  const [offer, setOffer] = useState<OfferKind | null>(null);
+  const [skippedOffer, setSkippedOffer] = useState<OfferKind | null>(null);
+  const offerPanel = useRef<HTMLDivElement>(null);
+  useModalFocus(Boolean(offer), offerPanel, () => setOffer(null));
+  const kinds = new Set(items.map(item => productKind(item.product)).filter(Boolean));
+  const missingKind = kinds.size === 1 ? (kinds.has("bebida") ? "acompañante" : "bebida") : null;
+  const waitingForSuggestions = Boolean(missingKind && missingKind !== skippedOffer && catalogLoading && !storeProducts.length);
+  const requestedKind = offer ?? missingKind;
+  const suggestions = useMemo(() => groupCatalog(storeProducts.filter(product =>
+    requestedKind && product.disponible && price(product) > 0 && productKind(product) === requestedKind
+  )), [storeProducts, requestedKind]);
   const [submitRequested, setSubmitRequested] = useState(false);
   const [customerLocation, setCustomerLocation] = useState<LocationState>(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia("(max-width: 639px)").matches);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -275,6 +278,7 @@ export default function ArmarPedido() {
   };
 
   const handleClearCart = () => {
+    setSkippedOffer(null);
     setCustomerLocation(null);
     items.forEach(item => removeItem(item.id));
     setActiveProductId(null);
@@ -286,7 +290,7 @@ export default function ArmarPedido() {
       case "productos":
         return items.length > 0;
       case "configuracion":
-        return itemsConfigOk;
+        return itemsConfigOk && !waitingForSuggestions;
       case "datos":
         return customerOk && deliveryOk && (service !== "local" || !!tableNumber);
       case "resumen":
@@ -317,8 +321,8 @@ export default function ArmarPedido() {
       return;
     }
     setShowConfigWarning(false);
-    if (currentStepId === 'configuracion' && !hasBeverage && !beverageOfferAnswered && beverages.length > 0) {
-      setShowBeverageOffer(true);
+    if (currentStepId === 'configuracion' && missingKind && missingKind !== skippedOffer && suggestions.length > 0) {
+      setOffer(missingKind);
       return;
     }
     setStepIndex((prev) => Math.min(prev + 1, STEP_SEQUENCE.length - 1));
@@ -365,7 +369,7 @@ export default function ArmarPedido() {
       return {
         back,
         next: {
-          label: "Personalizar",
+          label: "Revisar pedido",
           onClick: goToNextStep,
           disabled: !canAdvanceFromStep("productos"),
         },
@@ -376,7 +380,7 @@ export default function ArmarPedido() {
       return {
         back: { label: "Carta", onClick: () => navigate("/catalogo"), disabled: false },
         next: {
-          label: "Datos",
+          label: waitingForSuggestions ? "Cargando sugerencias…" : "Continuar con mis datos",
           onClick: goToNextStep,
           disabled: !canAdvanceFromStep("configuracion"),
         },
@@ -385,7 +389,7 @@ export default function ArmarPedido() {
 
     if (currentStepId === "datos") {
       return {
-        back: { label: "Personalizar", onClick: () => setStepIndex(1), disabled: false },
+        back: { label: "Revisar pedido", onClick: () => setStepIndex(1), disabled: false },
         next: {
           label: "Ver resumen",
           onClick: goToNextStep,
@@ -405,16 +409,16 @@ export default function ArmarPedido() {
   })();
 
   const renderProductsStep = () => (
-    <div className="py-10 text-center sm:py-16">
+    <div data-hint-group className="py-10 text-center sm:py-16">
       <h2 className="mt-3 text-2xl text-rojo-dark sm:text-3xl" >Elige desde nuestra carta</h2>
-      <p className="mx-auto mt-2 max-w-sm text-sm text-gray-500">Encuentra el plato que deseas y agrégalo directamente a tu pedido.</p>
-      <Link to="/catalogo" className="mt-6 inline-flex min-h-11 items-center bg-rojo px-6 py-3 text-sm font-semibold text-crema">Ver nuestra carta</Link>
+      <p className="mx-auto mt-2 max-w-sm text-sm text-gray-500">Elige una bebida o un acompañante y toca «Agregar».</p>
+      <Link to="/catalogo" className="mt-6 inline-flex min-h-11 items-center rounded-full bg-rojo px-6 py-3 text-sm font-semibold text-crema">Ver nuestra carta<ActionHint step="explorar">Aquí eliges tu primer producto.</ActionHint></Link>
+      <div data-hint-slot />
     </div>
   );
 
   const renderConfigStep = () => (
-    <div className="space-y-5 sm:space-y-6">
-      <ProductConfigSection
+    <ProductConfigSection
         items={items}
         updateItem={updateItem}
         duplicateItem={duplicateItem}
@@ -422,33 +426,11 @@ export default function ArmarPedido() {
         activeProductId={activeProductId}
         onFocusProduct={handleFocusProduct}
         onGoToNext={goToNextStep}
-        onAddAnotherProduct={() => navigate("/elegir-pedido")}
+        waitingForSuggestions={waitingForSuggestions}
+        onAddAnotherProduct={() => navigate("/productos")}
         showIncompleteWarning={showConfigWarning}
         disabledToppingIds={disabledToppingIds}
-      />
-
-      <div className="hidden sm:flex sm:items-center sm:justify-between">
-        <button
-          type="button"
-          onClick={() => navigate("/elegir-pedido")}
-          className="border border-gray-200 px-5 py-2 text-sm font-semibold text-gray-500 hover:border-gray-400 hover:text-black"
-        >
-          + Agregar más
-        </button>
-
-        <button
-          type="button"
-          onClick={goToNextStep}
-          disabled={!canAdvanceFromStep("configuracion")}
-          className={[
-            "border border-gray-300 px-6 py-2 text-sm font-semibold transition",
-            canAdvanceFromStep("configuracion") ? "text-black hover:border-black" : "text-gray-300 cursor-not-allowed",
-          ].join(" ")}
-        >
-          Datos y envío
-        </button>
-      </div>
-    </div>
+    />
   );
 
   const renderDatosStep = () => (
@@ -605,7 +587,7 @@ export default function ArmarPedido() {
         {stepContent}
       </div>
 
-      {currentStepId !== 'datos' && <div className="sticky bottom-[var(--credit-height)] z-40 flex items-center gap-2 border-t border-gray-200 bg-white px-4 py-3">
+      {currentStepId !== 'datos' && <div data-hint-group className="sticky bottom-[var(--credit-height)] z-40 flex flex-wrap items-center gap-2 border-t border-gray-200 bg-white px-4 py-3">
         <button
           type="button"
           onClick={footerCTA.back.onClick}
@@ -632,7 +614,10 @@ export default function ArmarPedido() {
           ].join(" ")}
         >
           {footerCTA.next.label}
+          {currentStepId === "resumen" && !footerNextDisabled && <ActionHint step="confirmar">Confirma si todo está correcto.</ActionHint>}
+          {currentStepId === "configuracion" && !activeProductId && !footerNextDisabled && <ActionHint step="datos">¿Todo listo? Sigue aquí.</ActionHint>}
         </button>
+        <div data-hint-slot className="basis-full" />
       </div>}
     </div>
   );
@@ -651,17 +636,10 @@ export default function ArmarPedido() {
     <>
       {mobileDetailMode ? mobileDetailLayout : desktopOrCatalogLayout}
 
-      {showBeverageOffer && <div ref={beveragePanel} tabIndex={-1} className="fixed inset-x-0 top-0 bottom-[var(--credit-height)] z-[70] flex items-end justify-center bg-black/60 p-3 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="beverage-offer-title">
-        <div className="flex max-h-[85dvh] w-full max-w-lg flex-col overflow-hidden bg-crema p-5 shadow-xl sm:p-6">
-          <h2 id="beverage-offer-title" className="font-serif text-2xl text-rojo-dark">¿Quieres llevar una bebida?</h2>
-          <p className="mt-2 text-sm text-stone-600">Tu pedido está guardado. Puedes agregar una bebida o continuar sin ella.</p>
-          <div className="mt-4 flex-1 divide-y divide-rojo/10 overflow-y-auto border-y border-rojo/15">
-            {beverages.map(product => <div key={product.id} className="flex items-center gap-3 py-3"><div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden bg-crema-dark">{product.image ? <img src={product.image} alt="" loading="lazy" className="h-full w-full object-cover" /> : <span className="text-[10px] font-semibold text-rojo/60">Avena Cubana Pop</span>}</div><div className="min-w-0 flex-1"><b className="block text-sm">{product.name}</b>{product.category === 'frutafresh' && isFixedPrice(product.prices) && <span className="text-xs text-stone-600">{cop(product.prices.fijo)}</span>}</div><button type="button" onClick={() => addProduct(product)} aria-label={`Agregar ${product.name}`} className="min-h-10 border border-rojo px-3 text-sm font-semibold text-rojo">Agregar</button></div>)}
-          </div>
-          {hasBeverage && <p role="status" className="mt-3 text-sm font-semibold text-rojo">Bebida agregada a tu pedido.</p>}
-          <button type="button" onClick={() => { setBeverageOfferAnswered(true); setShowBeverageOffer(false); setStepIndex(2); }} className="mt-4 min-h-11 bg-rojo px-4 py-3 text-sm font-semibold text-crema">{hasBeverage ? 'Continuar a mis datos' : 'Continuar sin bebida'}</button>
-          <button type="button" onClick={() => setShowBeverageOffer(false)} className="mt-2 min-h-10 text-sm font-semibold text-stone-600">Volver al pedido</button>
-        </div>
+      {offer && <div ref={offerPanel} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="offer-title"
+        className="fixed inset-x-0 top-0 bottom-[var(--credit-height)] z-[70] flex items-end justify-center bg-black/60 p-3 sm:items-center">
+        <ComplementOffer kind={offer} families={suggestions} onAdd={addProduct} onBack={() => setOffer(null)}
+          onContinue={() => { setSkippedOffer(offer); setOffer(null); setStepIndex(2); }} />
       </div>}
 
       <CartDrawer
