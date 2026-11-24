@@ -38,3 +38,54 @@
 @media(max-width:540px){.cash-account summary span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}}
 
 .cash-actions button { text-align:left; cursor:pointer }
+
+/* El encabezado y los avisos ocupan su alto natural; el inicio usa el resto. */
+.admin-main[data-home] {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--credit-height, 0px));
+  height: calc(100dvh - var(--credit-height, 0px));
+}
+.admin-main[data-home] > .admin-page-header { flex: none; }
+.admin-main[data-home] > .admin-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.admin-main[data-home] .cash-home {
+  flex: 1 0 auto;
+  display: grid;
+  width: 100%;
+  margin: 0 auto;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(min-content, 1fr);
+  gap: clamp(.75rem, 2dvh, 1.75rem);
+  padding-bottom: 0;
+}
+.admin-main[data-home] .cash-welcome { min-height: clamp(7rem, 19dvh, 15rem); }
+.admin-main[data-home] .cash-actions :is(a,button) { min-height: clamp(6rem, 20dvh, 15rem); }
+@media (max-width: 700px) {
+  .admin-main[data-home] .cash-home { gap: .75rem; }
+  .admin-main[data-home] .cash-actions :is(a,button) { min-height: 3.75rem; padding-block: .6rem; }
+  .admin-main[data-home] .cash-stats { grid-template-columns: repeat(3, minmax(0,1fr)); gap: .4rem; }
+  .admin-main[data-home] .cash-stats > div { padding: .6rem; align-items: flex-start; }
+  .admin-main[data-home] .cash-stats svg { display: none; }
+  .admin-main[data-home] .cash-stats > div > div { display: block; font-size: .8rem; }
+  .admin-main[data-home] .cash-summary-head { gap: .25rem .75rem; margin-bottom: .5rem; }
+  .admin-main[data-home] .cash-note { padding: .6rem .8rem; font-size: .8rem; }
+  .shift-actions > a { min-height: 5rem; padding: 1rem; }
+}
+@media (max-height: 740px) {
+  .admin-main[data-home] .cash-welcome { min-height: 6.5rem; padding-block: .8rem; }
+  .admin-main[data-home] .cash-welcome > div:after { margin-top: .5rem; }
+  .admin-main[data-home] .cash-home { gap: .65rem; }
+  .admin-main[data-home] .cash-stats > div { padding-block: .55rem; }
+}
+@media (max-width: 420px) {
+  .admin-main[data-home] .admin-page-header { gap: .35rem; padding-inline: .65rem; }
+  .admin-main[data-home] .cash-welcome > div { width: 72%; }
+  .admin-main[data-home] .cash-welcome img { width: 28%; }
+}

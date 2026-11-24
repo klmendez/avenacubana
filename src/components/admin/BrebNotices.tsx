@@ -2,12 +2,23 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { RotateCcw, Volume2 } from "lucide-react";
 import { supabase } from "../../lib/supabase";
+import { bogotaStart, bogotaToday, periodDates } from "../../lib/adminPeriods";
 
 type Notice = { id: number; received_at: string; amount: number; payer: string; account_last4: string | null };
 const fields = "id,received_at,amount,payer,account_last4";
 const money = new Intl.NumberFormat("es-CO", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 const date = new Intl.DateTimeFormat("es-CO", { dateStyle: "short", timeStyle: "short", timeZone: "America/Bogota" });
 const pageSize = 20;
+const periods = ["Hoy", "Ayer", "Esta semana", "Este mes", "Todas las fechas"] as const;
+type Period = typeof periods[number];
+function historyRange(period: Period, today: string) {
+  if (period === "Todas las fechas") return null;
+  const anchor = bogotaStart(today);
+  if (period === "Ayer") anchor.setUTCDate(anchor.getUTCDate() - 1);
+  const dates = periodDates(anchor.toISOString().slice(0, 10),
+    period === "Esta semana" ? "semana" : period === "Este mes" ? "mes" : "dia");
+  return { from: bogotaStart(dates.from).toISOString(), until: bogotaStart(dates.until).toISOString() };
+}
 const greetingKey = "avena-breb-voice-welcomed";
 let greetedThisSession = false;
 const phrase = (n: Pick<Notice, "amount" | "payer">) => `Recibiste ${money.format(n.amount)} pesos de ${n.payer}.`;
@@ -25,7 +36,8 @@ function speak(text: string, report: (error: string) => void, done?: () => void)
 export default function BrebNotices({ showHistory }: { showHistory: boolean }) {
   const [history, setHistory] = useState<Notice[]>([]);
   const [latest, setLatest] = useState<Notice | null>(null);
-  const [previous, setPrevious] = useState<number[]>([]);
+  const [period, setPeriod] = useState<Period>("Hoy");
+  const [previous, setPrevious] = useState<Pick<Notice, "received_at" | "id">[]>([]);
   const before = previous.at(-1);
   const [more, setMore] = useState(false);
   const [sourceError, setSourceError] = useState("");
@@ -101,7 +113,7 @@ export default function BrebNotices({ showHistory }: { showHistory: boolean }) {
       if (busy) return;
       busy = true;
       try {
-        const head = await db.from("breb_notices").select(fields).order("id", { ascending: false }).limit(showHistory && !before ? pageSize + 1 : 1);
+        const head = await db.from("breb_notices").select(fields).order("id", { ascending: false }).limit(1);
         if (head.error) throw head.error;
         if (!alive) return;
         const newest = head.data[0];
@@ -109,7 +121,16 @@ export default function BrebNotices({ showHistory }: { showHistory: boolean }) {
         if (newest && lastSeen.current !== null && newest.id > lastSeen.current) setBanner(newest);
         lastSeen.current = newest?.id ?? 0;
         if (showHistory) {
-          const result = before ? await db.from("breb_notices").select(fields).lt("id", before).order("id", {ascending:false}).limit(pageSize + 1) : head;
+          const range = historyRange(period, bogotaToday());
+          let query = db.from("breb_notices").select(fields)
+            .order("received_at", { ascending: false }).order("id", { ascending: false });
+          if (range) query = query.gte("received_at", range.from).lt("received_at", range.until);
+          if (before && range && Date.parse(before.received_at) < Date.parse(range.from)) {
+            setPrevious([]);
+            return;
+          }
+          if (before) query = query.or(`received_at.lt.${before.received_at},and(received_at.eq.${before.received_at},id.lt.${before.id})`);
+          const result = await query.limit(pageSize + 1);
           if (result.error) throw result.error;
           if (!alive) return;
           setHistory(result.data.slice(0,pageSize)); setMore(result.data.length > pageSize);
@@ -122,7 +143,7 @@ export default function BrebNotices({ showHistory }: { showHistory: boolean }) {
     void poll();
     const interval = window.setInterval(poll, 8000);
     return () => { alive = false; clearInterval(interval); };
-  }, [before, showHistory]);
+  }, [before, period, showHistory]);
 
   function playClaimed(n: Pick<Notice, "id" | "amount" | "payer">) {
     if (playing.current) return;
@@ -212,9 +233,14 @@ export default function BrebNotices({ showHistory }: { showHistory: boolean }) {
     </div>
     {voiceEnabled && canSpeak && !voiceReady && <p className="text-sm text-slate-600">La voz está habilitada. Toca la pantalla para comenzar a escuchar.</p>}
     {(!canSpeak || audioError || sourceError) && <p role="status">{sourceError || audioError || "Este navegador no tiene lectura en voz alta."}</p>}
-    <div className="admin-data-table" role="region" aria-label="Historial de avisos Bre-B" tabIndex={0}><table><thead><tr><th>Recibido en Colombia</th><th>Quién envió</th><th>Valor</th><th>Cuenta receptora</th></tr></thead>
+    <div role="group" aria-label="Filtrar comprobantes por fecha" className="flex flex-wrap gap-2">
+      {periods.map(option => <button key={option} type="button" aria-pressed={option === period}
+        onClick={() => { if (option !== period) { setLoading(true); setPeriod(option); setPrevious([]); } }}
+        className={`rounded-full px-4 py-2 text-sm font-semibold ${option === period ? "bg-sky-700 text-white" : "border border-sky-200 bg-white text-sky-800"}`}>{option}</button>)}
+    </div>
+    <div className="admin-data-table" role="region" aria-label="Historial de avisos Bre-B" tabIndex={0}><table><thead><tr><th aria-sort="descending">Fecha y hora de recepción (Colombia)</th><th>Quién envió</th><th>Valor</th><th>Cuenta receptora</th></tr></thead>
       <tbody>{!loading && history.map(n => <tr key={n.id}><td>{date.format(new Date(n.received_at))}</td><td>{n.payer}</td><td>$ {money.format(n.amount)}</td><td>{n.account_last4 ? "•••• " + n.account_last4 : "Sin dato"}</td></tr>)}</tbody></table></div>
-    {loading ? <p>Cargando avisos…</p> : !sourceError && !history.length && <p>Todavía no hay avisos de Bre-B.</p>}
-    {(before || more) && <nav aria-label="Páginas del historial" className="flex gap-3"><button type="button" disabled={!before || loading} onClick={() => setPrevious(previous.slice(0,-1))}>Anterior</button><button type="button" disabled={!more || loading} onClick={() => setPrevious([...previous, history[history.length-1].id])}>Siguiente</button></nav>}
+    {loading ? <p>Cargando avisos…</p> : !sourceError && !history.length && <p>No hay comprobantes para este período.</p>}
+    {(before || more) && <nav aria-label="Páginas del historial" className="flex gap-3"><button type="button" disabled={!before || loading} onClick={() => setPrevious(previous.slice(0,-1))}>Anterior</button><button type="button" disabled={!more || loading} onClick={() => setPrevious([...previous, history[history.length-1]])}>Siguiente</button></nav>}
   </section>;
 }

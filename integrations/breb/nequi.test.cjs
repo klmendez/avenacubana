@@ -3,7 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const vm = require("node:vm");
 const path = require("node:path");
-const parser = vm.runInNewContext(fs.readFileSync(path.join(__dirname, "Nequi.gs"), "utf8") + "\nparseNequiNotice");
+const parser = vm.runInNewContext(fs.readFileSync(path.join(__dirname, "Nequi.gs"), "utf8") + "\nparseBankNotice");
 const h = (name, value) => ({name, value});
 const auth = "mx.google.com; dkim=pass header.i=@nequi.com.co; dmarc=pass header.from=nequi.com.co";
 const headers = [
@@ -29,4 +29,19 @@ test("rechaza mensajes no autenticados y correos para otras cuentas", () => {
 });
 test("rechaza avisos de salida, importes mal formados y textos ambiguos", () => {
   for (const s of [body.replace("Recibiste","Enviaste"),body.replace("122.000","12.20"),body+" "+body]) assert.equal(parse(headers,s),null);
+});
+
+test("lee pagos QR de Bancolombia y comprueba la identidad del remitente", () => {
+  const sender = "alertasynotificaciones@ayn.notificacionesbancolombia.com";
+  const values = {"From":sender,"Subject":"Alertas y Notificaciones","Authentication-Results":
+    "mx.google.com; dkim=pass header.i=@notificacionesbancolombia.com; dmarc=pass header.from=ayn.notificacionesbancolombia.com"};
+  const hs = headers.map(x => h(x.name, values[x.name] || x.value));
+  const credit = "Bancolombia: AVENA CUBANA, recibiste un pago de RONALD SANTIAGO GUEVARA RUANO por $55.00 en tu cuenta *4054 conectado a la llave";
+  const n = parse(hs, credit);
+  assert.equal(n.amount,55); assert.equal(n.account,"4054"); assert.equal(n.payer,"RONALD SANTIAGO GUEVARA RUANO");
+  for (const value of ["55,000.00","55.000,00"]) assert.equal(parse(hs,credit.replace("55.00",value)).amount,55000);
+  for (const value of ["5.5.0","0.00"]) assert.equal(parse(hs,credit.replace("55.00",value)),null);
+  assert.equal(parse(hs,credit.replace("recibiste","enviaste")),null);
+  assert.equal(parse(hs,credit+" "+credit),null);
+  assert.equal(parse(hs.map(x=>x.name==="Authentication-Results"?h(x.name,auth):x), credit),null);
 });
