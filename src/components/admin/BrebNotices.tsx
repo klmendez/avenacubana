@@ -217,21 +217,27 @@ export default function BrebNotices({ showHistory }: { showHistory: boolean }) {
     </button>
   );
   if (!showHistory) return <>{senderSummary}{audioAction}</>;
-  return <section className="mx-auto max-w-6xl space-y-4 py-3">
-    {senderSummary}
-    {audioAction}
-    <p className="text-sm text-slate-600">Avisos informativos del correo. Verifica el ingreso en la app del banco antes de registrar el cobro.</p>
-    <div className="flex flex-wrap gap-2">
-      <button type="button" disabled={!canSpeak} aria-pressed={voiceEnabled} className="inline-flex items-center gap-2 rounded-full bg-sky-700 px-4 py-2 text-white disabled:opacity-50" onClick={() => {
-        setAudioError("");
-        const enabled = !voiceEnabled;
-        setVoiceEnabled(enabled);
-        try { localStorage.setItem("avena-breb-voice", enabled ? "on" : "off"); } catch { /* Preferencia durante esta sesión. */ }
-        if (!enabled) { setVoiceReady(false); window.speechSynthesis.cancel(); }
-      }}><Volume2 size={18}/>{voiceEnabled ? "Desactivar voz" : "Activar voz en este equipo"}</button>
-      <button type="button" disabled={!latest || !canSpeak} className="inline-flex items-center gap-2 rounded-full border border-sky-300 bg-white px-4 py-2 disabled:opacity-50" onClick={() => { if (latest) speak(phrase(latest), setAudioError); }}><RotateCcw size={17}/>Repetir último aviso</button>
+  return <section className="breb-history mx-auto max-w-6xl space-y-4 py-3">
+    <div className="grid items-start gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr))]">
+      <div className="min-w-0">
+        {senderSummary}
+        <p className="text-sm text-slate-600">Avisos informativos del correo. Verifica el ingreso en la app del banco antes de registrar el cobro.</p>
+      </div>
+      <div className="min-w-0 space-y-2">
+        <div className="flex flex-wrap gap-2">
+          {audioAction}
+          <button type="button" disabled={!canSpeak} aria-pressed={voiceEnabled} className="inline-flex items-center gap-2 rounded-full bg-sky-700 px-4 py-2 text-white disabled:opacity-50" onClick={() => {
+            setAudioError("");
+            const enabled = !voiceEnabled;
+            setVoiceEnabled(enabled);
+            try { localStorage.setItem("avena-breb-voice", enabled ? "on" : "off"); } catch { /* Preferencia durante esta sesión. */ }
+            if (!enabled) { setVoiceReady(false); window.speechSynthesis.cancel(); }
+          }}><Volume2 size={18}/>{voiceEnabled ? "Desactivar voz" : "Activar voz en este equipo"}</button>
+          <button type="button" disabled={!latest || !canSpeak} className="inline-flex items-center gap-2 rounded-full border border-sky-300 bg-white px-4 py-2 disabled:opacity-50" onClick={() => { if (latest) speak(phrase(latest), setAudioError); }}><RotateCcw size={17}/>Repetir último aviso</button>
+        </div>
+        {voiceEnabled && canSpeak && !voiceReady && <p className="text-sm text-slate-600">La voz está habilitada. Toca la pantalla para comenzar a escuchar.</p>}
+      </div>
     </div>
-    {voiceEnabled && canSpeak && !voiceReady && <p className="text-sm text-slate-600">La voz está habilitada. Toca la pantalla para comenzar a escuchar.</p>}
     {(!canSpeak || audioError || sourceError) && <p role="status">{sourceError || audioError || "Este navegador no tiene lectura en voz alta."}</p>}
     <div role="group" aria-label="Filtrar comprobantes por fecha" className="flex flex-wrap gap-2">
       {periods.map(option => <button key={option} type="button" aria-pressed={option === period}

@@ -556,6 +556,10 @@ button[class~="bg-rojo"]:disabled {
 @media (min-width: 1024px) {
   .admin-main { margin-left: 17rem; transition: margin-left .2s; }
   .admin-sidebar-collapsed .admin-main { margin-left: 5rem; }
+  .admin-sidebar-collapsed .admin-content :where(.cash-home, .co-board, .register-sale, .inventory-page, .order-workspace, .cashier-detail, .breb-history) {
+    width: 100%;
+    max-width: none;
+  }
 }
 .admin-welcome-intro p { font-size: .875rem; font-weight: 600; letter-spacing: normal; text-transform: none; }
 .admin-theme :is(h1, h2, h3, p)[class*="tracking-"] { letter-spacing: normal; text-transform: none; color: #397aa6; }
