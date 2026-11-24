@@ -221,7 +221,6 @@ export default function BrebNotices({ showHistory }: { showHistory: boolean }) {
     <div className="grid items-start gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr))]">
       <div className="min-w-0">
         {senderSummary}
-        <p className="text-sm text-slate-600">Avisos informativos del correo. Verifica el ingreso en la app del banco antes de registrar el cobro.</p>
       </div>
       <div className="min-w-0 space-y-2">
         <div className="flex flex-wrap gap-2">
