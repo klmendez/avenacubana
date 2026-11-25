@@ -3,7 +3,7 @@ export interface FirestoreCategory { id?: string; name: string; description?: st
 export const CategoryService = {
   async getCategories(): Promise<FirestoreCategory[]> {
     if (!supabase) throw new Error('Supabase no está configurado');
-    const { data, error } = await supabase.from('catalog_items').select('category');
+    const { data, error } = await supabase.from('catalog_items').select('category').is('deleted_at', null);
     if (error) throw new Error(error.message);
     return [...new Set((data ?? []).map(row => row.category as string))].map(name => ({ id: name, name }));
   },

@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import { uploadCatalogImage, validateCatalogImage } from "../../lib/catalogImage";
 
 import ProductList from "./ProductList";
+import PresentationEditor from "./PresentationEditor";
 export type CatalogItem = {
   id: string; name: string; description: string; category: string;
   item_type: "carta" | "bebida" | "otro"; price: number;
@@ -23,6 +24,7 @@ export default function CatalogAdmin({ productsOnly = false }: { productsOnly?: 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   const [saving, setSaving] = useState(false);
+  const [configuringPresentations, setConfiguringPresentations] = useState(false);
 
   useEffect(() => {
     if (!imageFile) return;
@@ -33,7 +35,7 @@ export default function CatalogAdmin({ productsOnly = false }: { productsOnly?: 
 
   const load = async () => {
     if (!supabase) return;
-    const { data, error } = await supabase.from("catalog_items").select("*").order("category").order("name");
+    const { data, error } = await supabase.from("catalog_items").select("*").is("deleted_at", null).order("category").order("name");
     if (error) setMessage(error.message); else setItems(((data ?? []) as CatalogItem[]).filter(item => productsOnly || item.item_type !== "otro"));
   };
   useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(timer); }, []);
@@ -73,6 +75,8 @@ export default function CatalogAdmin({ productsOnly = false }: { productsOnly?: 
 
   const displayPhoto = imageFile ? preview : catalogProductImage(form.name, form.image_url);
   return <div className="avena-product-panel w-full min-w-0 text-[#071e55]">
+    <button type="button" onClick={() => setConfiguringPresentations(true)} className="mb-4 rounded-full border border-sky-600 px-5 py-2.5 text-sm font-semibold text-sky-700">Configurar tamaños y precios</button>
+    {configuringPresentations && <PresentationEditor items={items} close={() => setConfiguringPresentations(false)} saved={async () => { await load(); setMessage("Presentaciones y precios guardados."); }} />}
     <ProductList items={items} create={() => chooseMode("agregar")} edit={edit} archive={remove}
       duplicate={item => { chooseMode("agregar"); setForm({ ...item, name: item.name + " (copia)", price: String(item.price), image_url: item.image_url ?? "", available: false }); }} />    {(mode === "agregar" || (mode === "editar" && editing)) && <div className="fixed inset-0 z-[80] flex justify-end bg-[#061d55]/40"><form onSubmit={save} className="h-full w-full max-w-2xl overflow-y-auto bg-[#f8fbff] p-6 shadow-xl">
       <div className="mb-5 flex items-center justify-between gap-4"><h3 className="text-lg font-medium">{editing ? "Editar producto" : "Agregar producto"}</h3>{editing && <button type="button" onClick={() => { setEditing(null); setImageFile(null); setPreview(""); }} className="text-sm text-[#087fc7] underline">Elegir otro producto</button>}</div>

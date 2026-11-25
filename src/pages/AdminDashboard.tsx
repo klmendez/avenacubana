@@ -255,7 +255,7 @@ export default function AdminDashboard() {
 
   // El panel y sus estadísticas solo aceptan ventas identificables de Avena Cubana Pop.
   // Los pedidos heredados de gomitas/FrutaFresh quedan fuera de todos los totales.
-  const brandOrders = orders.filter((order) => order.numeroOrden.startsWith('LT-'));
+  const brandOrders = orders.filter((order) => order.numeroOrden.startsWith('LT-') || /^V\d+$/.test(order.numeroOrden));
 
   const ordersForSection = brandOrders.filter((order) => {
     if (activeTab === 'pedidos') return true;

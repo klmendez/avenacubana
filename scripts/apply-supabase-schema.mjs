@@ -54,6 +54,9 @@ try {
   await client.query(fs.readFileSync(new URL('../supabase/migrations/20261122_agregar_cuenta_mesa.sql', import.meta.url), 'utf8'));
   await client.query(fs.readFileSync(new URL('../supabase/migrations/20261122_barrios_domicilio.sql', import.meta.url), 'utf8'));
   await client.query(fs.readFileSync(new URL("../supabase/migrations/20261123_breb.sql", import.meta.url), "utf8"));
+  await client.query(fs.readFileSync(new URL("../supabase/migrations/20261125_inventario_barras.sql", import.meta.url), "utf8"));
+  await client.query(fs.readFileSync(new URL("../supabase/migrations/20261125_numeros_pedido.sql", import.meta.url), "utf8"));
+  await client.query(fs.readFileSync(new URL("../supabase/migrations/20261125_configurar_presentaciones.sql", import.meta.url), "utf8"));
   await client.query("commit");
   const result = await client.query(`
     select table_name

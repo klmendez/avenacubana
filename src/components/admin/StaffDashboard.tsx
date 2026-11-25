@@ -1,3 +1,4 @@
+import { placeLabel } from '../../lib/tablePlaces';
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Utensils, Boxes } from 'lucide-react';
@@ -42,7 +43,7 @@ function StaffOrders({ selectedId, takingOrders = false }: { selectedId?: string
           <section className="cashier-detail-section order-summary">
             <h3 className="text-lg font-semibold">Resumen del pedido</h3>
             <p className="mt-3 text-sm text-[#526d80]">Cliente</p><p className="font-medium">{order.cliente.nombres}</p>
-            <p className="mt-3 text-sm text-[#526d80]">Servicio</p><p>{order.servicio === 'local' ? `En el local${order.cliente.mesa ? ` · Mesa ${order.cliente.mesa}` : ''}` : order.servicio === 'domicilio' ? 'Domicilio' : 'Para llevar'}</p>
+            <p className="mt-3 text-sm text-[#526d80]">Servicio</p><p>{order.servicio === 'local' ? `En el local${order.cliente.mesa ? ` · ${placeLabel(order.cliente.mesa)}` : ''}` : order.servicio === 'domicilio' ? 'Domicilio' : 'Para llevar'}</p>
             {order.servicio === 'domicilio' && <div className="mt-3">
               <p className="text-sm text-[#526d80]">Dirección de entrega</p>
               <p>{[order.cliente.direccion, order.cliente.barrio].filter(Boolean).join(' · ')}</p>

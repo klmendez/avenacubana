@@ -1,3 +1,4 @@
+import { placeLabel, tablePlaces } from '../../lib/tablePlaces';
 import { Fragment, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Armchair, CalendarDays, ChevronRight, ClipboardList, Edit, Eye, MoreHorizontal, Plus, RefreshCw, Search, ShoppingBag, Trash2, Truck } from 'lucide-react';
@@ -21,7 +22,7 @@ function matches(order: Order, filter: Filter) {
   return filter === 'Pagados' ? paymentSummary(order).balance === 0 : paymentSummary(order).balance > 0;
 }
 function serviceLabel(order: Order) {
-  if (order.servicio === 'local') return order.cliente.mesa ? `Mesa ${order.cliente.mesa}` : 'En el local';
+  if (order.servicio === 'local') return order.cliente.mesa ? placeLabel(order.cliente.mesa) : 'En el local';
   return order.servicio === 'domicilio' ? 'Domicilio' : 'Para llevar';
 }
 const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
@@ -45,7 +46,7 @@ export default function CashierOrdersBoard({ orders, refresh, takingOrders = fal
   const [table, setTable] = useState<number | null>(null);
   const [expanded, setExpanded] = useState('');
   const tableOrders = orders.filter(order =>
-    order.servicio === 'local' && [1, 2, 3, 4, 5].includes(Number(order.cliente.mesa))
+    order.servicio === 'local' && tablePlaces.includes(Number(order.cliente.mesa))
   );
   const openTables = tableOrders.filter(order => matches(order, 'Pendientes'));
   const range = date && period !== 'todos' ? periodDates(date, period) : null;
@@ -58,21 +59,23 @@ export default function CashierOrdersBoard({ orders, refresh, takingOrders = fal
   const visible = recent.filter(order => matches(order, filter));
   return <div className="co-board">
     <section className="co-tables">
-      <header><h2><Armchair/> Mesas (5)</h2><div className="co-key"><span>Ocupada</span><span>Libre</span><span>Con pedido</span></div></header>
-      <div className="co-table-grid">{[1,2,3,4,5].map(number => {
+      <header><h2><Armchair/> Mesas y barras</h2><div className="co-key"><span>Ocupada</span><span>Libre</span><span>Con pedido</span></div></header>
+      {[{ label: 'Mesas', places: tablePlaces.slice(0, 5) }, { label: 'Barras', places: tablePlaces.slice(5) }].map(group => <div className="co-place-group" key={group.label}>
+      <h3>{group.label}</h3>
+      <div className="co-table-grid">{group.places.map(number => {
         const active = openTables.filter(order => Number(order.cliente.mesa) === number);
         const state = !active.length ? 'Libre' : active.every(order => fulfillmentStatus(order.estado) === 'registrado' && !(order.paidTotal ?? 0)) ? 'Con pedido' : 'Ocupada';
         return <button key={number} type="button" aria-expanded={active.length ? table === number : undefined} data-state={state} onClick={() => {
           if (active.length) setTable(table === number ? null : number);
           else navigate(newOrderPath(number));
         }}>
-          <strong><Armchair size={23}/> Mesa {number}</strong><span className="co-table-status">{state}</span><ChevronRight className="co-arrow" size={20}/>
+          <strong><Armchair size={23}/> {placeLabel(number)}</strong><span className="co-table-status">{state}</span><ChevronRight className="co-arrow" size={20}/>
           <small>{active.length ? `${active.length} ${active.length === 1 ? 'pedido' : 'pedidos'} · ${cop(active.reduce((sum, order) => sum + paymentSummary(order).balance, 0))}` : 'Sin pedidos'}</small>
         </button>;
-      })}</div>
+      })}</div></div>)}
       {table !== null && <div className="co-table-detail">
         <div className="co-detail-header">
-          <div><h3>Mesa {table}</h3><p>Pedidos pendientes de esta mesa</p></div>
+          <div><h3>{placeLabel(table)}</h3><p>Pedidos pendientes de este lugar</p></div>
           <Link className="co-detail-button secondary" to={newOrderPath(table)}><Plus size={18}/>{takingOrders ? 'Nuevo pedido' : 'Nueva venta'}</Link>
         </div>
         <div className="co-detail-orders">
@@ -102,7 +105,7 @@ export default function CashierOrdersBoard({ orders, refresh, takingOrders = fal
         <button type="button" aria-label="Actualizar pedidos y mesas" onClick={refresh}><RefreshCw/></button>
       </header>
       <div className="co-tabs">{tabs.map(tab => <button type="button" key={tab} aria-pressed={filter === tab} onClick={() => setFilter(tab)}>{tab} ({recent.filter(order => matches(order, tab)).length})</button>)}</div>
-      <div className="admin-data-table" role="region" tabIndex={0} aria-label="Pedidos recientes"><table><thead><tr>{['Pedido','Cliente','Mesa / Tipo','Total','Pago','Estado','Acciones'].map(title => <th key={title}>{title}</th>)}</tr></thead>
+      <div className="admin-data-table co-order-table" role="region" tabIndex={0} aria-label="Pedidos recientes"><table><thead><tr>{['Pedido','Cliente','Mesa / Tipo','Total','Pago','Estado','Acciones'].map(title => <th key={title}>{title}</th>)}</tr></thead>
         <tbody>{visible.map(order => {
           const ServiceIcon = order.servicio === 'local' ? Armchair : order.servicio === 'domicilio' ? Truck : ShoppingBag;
           const payment = paymentSummary(order);
@@ -111,15 +114,15 @@ export default function CashierOrdersBoard({ orders, refresh, takingOrders = fal
             if (!(target instanceof Element) || !event.currentTarget.contains(target) || target.closest('a, button, select, input, label, summary, [role="dialog"]')) return;
             navigate('/admin/pedido/' + order.id);
           } : undefined}>
-            <td>{takingOrders ? <strong className="co-number">{order.numeroOrden}</strong> : <Link className="co-number" to={'/admin/pedido/' + order.id}>{order.numeroOrden}</Link>}<small>{time.format(order.createdAt.toDate())}</small></td>
-            <td>{order.cliente.nombres || 'Consumidor final'}{admin && order.cliente.celular && <small>{order.cliente.celular} <WhatsAppQuickSend phone={order.cliente.celular} templates={buildOrderQuickMessages(order)} /></small>}</td><td><span className="co-tag"><ServiceIcon size={15}/>{serviceLabel(order)}</span>{admin && order.cliente.direccion && <small>{order.cliente.direccion}</small>}{admin && (order.cliente.coordenadas || order.cliente.mapsLink) && <small><a target="_blank" rel="noreferrer" href={order.cliente.coordenadas ? `https://maps.google.com/?q=${order.cliente.coordenadas.lat},${order.cliente.coordenadas.lng}` : order.cliente.mapsLink}>Ver ubicación</a></small>}</td>
-            <td>{cop(order.total)}{admin && <><small>Cobrado: {cop(payment.collected)}</small><small>Saldo: {cop(payment.balance)}</small></>}</td><td><span className={'co-tag ' + (payment.balance === 0 ? 'paid' : 'due')}>{payment.label}</span></td>
-            <td>{admin ? <select aria-label={'Estado de ' + order.numeroOrden} value={fulfillmentStatus(order.estado)} onChange={e => {
+            <td data-label="Pedido">{takingOrders ? <strong className="co-number">{order.numeroOrden}</strong> : <Link className="co-number" to={'/admin/pedido/' + order.id}>{order.numeroOrden}</Link>}<small>{time.format(order.createdAt.toDate())}</small></td>
+            <td data-label="Cliente">{order.cliente.nombres || 'Consumidor final'}{admin && order.cliente.celular && <small>{order.cliente.celular} <WhatsAppQuickSend phone={order.cliente.celular} templates={buildOrderQuickMessages(order)} /></small>}</td><td data-label="Mesa / tipo"><span className="co-tag"><ServiceIcon size={15}/>{serviceLabel(order)}</span>{admin && order.cliente.direccion && <small>{order.cliente.direccion}</small>}{admin && (order.cliente.coordenadas || order.cliente.mapsLink) && <small><a target="_blank" rel="noreferrer" href={order.cliente.coordenadas ? `https://maps.google.com/?q=${order.cliente.coordenadas.lat},${order.cliente.coordenadas.lng}` : order.cliente.mapsLink}>Ver ubicación</a></small>}</td>
+            <td data-label="Total">{cop(order.total)}{admin && <><small>Cobrado: {cop(payment.collected)}</small><small>Saldo: {cop(payment.balance)}</small></>}</td><td data-label="Pago"><span className={'co-tag ' + (payment.balance === 0 ? 'paid' : 'due')}>{payment.label}</span></td>
+            <td data-label="Estado">{admin ? <select aria-label={'Estado de ' + order.numeroOrden} value={fulfillmentStatus(order.estado)} onChange={e => {
               const next = e.target.value as keyof typeof fulfillmentLabels;
               admin.updateStatus(order.id, next === 'registrado' ? (payment.balance === 0 ? 'pagado' : 'no_pagado') : next);
             }}>{Object.entries(fulfillmentLabels).filter(([value]) => value !== 'en_camino' || order.servicio === 'domicilio' || order.estado === 'en_camino').map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select> : <span className={'co-tag ' + order.estado}>{fulfillmentLabels[fulfillmentStatus(order.estado)]}</span>}</td>
-            <td><div className="co-actions">{!takingOrders && <Link aria-label={'Ver pedido ' + order.numeroOrden} to={'/admin/pedido/' + order.id}><Eye size={19}/></Link>}{admin && <><button type="button" aria-label={'Editar pedido ' + order.numeroOrden} onClick={() => admin.edit(order)}><Edit size={18}/></button><button type="button" aria-label={'Eliminar pedido ' + order.numeroOrden} onClick={() => admin.remove(order.id)}><Trash2 size={18}/></button></>}<button aria-label={'Productos de ' + order.numeroOrden} aria-expanded={expanded === order.id} onClick={() => setExpanded(expanded === order.id ? '' : order.id)}>{takingOrders ? <Eye size={19}/> : <MoreHorizontal size={19}/>}</button></div></td>
-          </tr>{expanded === order.id && <tr><td colSpan={7}><strong>Productos</strong><ul>{order.items.map((item, index) => <li key={index}>{item.qty} × {item.product.name}{item.version ? ' (' + item.version + ')' : ''}</li>)}</ul><small>Método de pago: {order.formaPago} · Descuento: {cop(order.descuentoTotal ?? 0)}</small>{order.cliente.referencia && <small>Referencia: {order.cliente.referencia}</small>}</td></tr>}</Fragment>;
+            <td data-label="Acciones"><div className="co-actions">{!takingOrders && <Link aria-label={'Ver pedido ' + order.numeroOrden} to={'/admin/pedido/' + order.id}><Eye size={19}/></Link>}{admin && <><button type="button" aria-label={'Editar pedido ' + order.numeroOrden} onClick={() => admin.edit(order)}><Edit size={18}/></button><button type="button" aria-label={'Eliminar pedido ' + order.numeroOrden} onClick={() => admin.remove(order.id)}><Trash2 size={18}/></button></>}<button aria-label={'Productos de ' + order.numeroOrden} aria-expanded={expanded === order.id} onClick={() => setExpanded(expanded === order.id ? '' : order.id)}>{takingOrders ? <Eye size={19}/> : <MoreHorizontal size={19}/>}</button></div></td>
+          </tr>{expanded === order.id && <tr className="co-expanded-row"><td colSpan={7}><strong>Productos</strong><ul>{order.items.map((item, index) => <li key={index}>{item.qty} × {item.product.name}{item.version ? ' (' + item.version + ')' : ''}</li>)}</ul><small>Método de pago: {order.formaPago} · Descuento: {cop(order.descuentoTotal ?? 0)}</small>{order.cliente.referencia && <small>Referencia: {order.cliente.referencia}</small>}</td></tr>}</Fragment>;
         })}</tbody></table></div>
       {!visible.length && <p className="co-empty">No hay pedidos que coincidan con los filtros.</p>}
     </section>

@@ -79,7 +79,7 @@ export default function AdminNotifications({ onNavigate }: { onNavigate: (sectio
         }
         const [orderResult, stockResult] = await Promise.all([
           db.from('orders').select('id,order_number,total,created_at').eq('business','la_tuba').order('created_at',{ascending:false}).limit(50),
-          db.from('inventory_items').select('id,name,unit,quantity,minimum_quantity').order('name'),
+          db.from('inventory_items').select('id,name,unit,quantity,minimum_quantity').is('deleted_at', null).order('name'),
         ]);
         if (orderResult.error || stockResult.error) throw new Error('No se pudieron cargar las notificaciones.');
         if (!alive) return;

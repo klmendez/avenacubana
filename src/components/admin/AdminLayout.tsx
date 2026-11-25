@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Landmark, UserCircle, ChevronDown, BarChart3, Boxes, Calendar, ChevronLeft, ChevronRight, Download, Home, LogOut, Menu, Package, PlusCircle, Star, Tag, UserPlus, Users, Utensils, X } from "lucide-react";
+import { Landmark, UserCircle, ChevronDown, BarChart3, Boxes, Calendar, ChevronLeft, ChevronRight, Download, Home, LogOut, Maximize, Minimize, Menu, Package, PlusCircle, Star, Tag, UserPlus, Users, Utensils, X } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import BrebNotices from "./BrebNotices";
 import AdminNotifications from './AdminNotifications';
@@ -8,6 +8,9 @@ import AdminNotifications from './AdminNotifications';
 export type AdminSection = "inicio" | "mesas" | "tomar-pedido" | "inventario" | "reservas" | "carta-bebidas" | "registrar-venta" | "pedidos-menu" | "pedidos-carta" | "pedidos-bebidas" | "pedidos" | "clientes" | "cumpleanos" | "estadisticas" | "productos" | "categorias" | "promociones" | "menu-dia" | "experiencia" | "resenas" | "usuarios" | "breb";
 
 type Props = { cashierHome?: boolean; accountLabel?: string; allowedSections?: AdminSection[]; pageTitle?: string; pageDescription?: string; activeSection?: AdminSection; onChangeSection?: (section: AdminSection) => void; onExportCSV?: () => void; children: React.ReactNode };
+
+type FullscreenDocument = Document & { webkitFullscreenElement?: Element | null; webkitExitFullscreen?: () => Promise<void> | void };
+type FullscreenElement = HTMLElement & { webkitRequestFullscreen?: () => Promise<void> | void };
 
 const sections = [
   { id: "inicio", label: "Inicio", icon: Home },
@@ -71,6 +74,31 @@ export default function AdminLayout({ cashierHome = false, accountLabel, allowed
   }, []);
   const onChangeSection = changeSection ?? ((section: AdminSection) => navigate(`/admin?seccion=${section}`));
   const [open, setOpen] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [fullscreenMessage, setFullscreenMessage] = useState("");
+  useEffect(() => {
+    const doc = document as FullscreenDocument;
+    const sync = () => setFullscreen(Boolean(doc.fullscreenElement || doc.webkitFullscreenElement));
+    sync();
+    doc.addEventListener("fullscreenchange", sync);
+    doc.addEventListener("webkitfullscreenchange", sync);
+    return () => { doc.removeEventListener("fullscreenchange", sync); doc.removeEventListener("webkitfullscreenchange", sync); };
+  }, []);
+  const toggleFullscreen = async () => {
+    const doc = document as FullscreenDocument;
+    const root = doc.documentElement as FullscreenElement;
+    setFullscreenMessage("");
+    try {
+      if (doc.fullscreenElement || doc.webkitFullscreenElement) {
+        if (doc.exitFullscreen) await doc.exitFullscreen();
+        else if (doc.webkitExitFullscreen) await doc.webkitExitFullscreen();
+      } else if (root.requestFullscreen) await root.requestFullscreen();
+      else if (root.webkitRequestFullscreen) await root.webkitRequestFullscreen();
+      else setFullscreenMessage("Tu navegador no permite activar pantalla completa en esta página.");
+    } catch {
+      setFullscreenMessage("No se pudo cambiar a pantalla completa. Revisa la configuración de tu navegador.");
+    }
+  };
   const [compactDesktop, setCompactDesktop] = useState(() => {
     try { return localStorage.getItem("avena-sidebar-compact") === "true"; }
     catch { return false; }
@@ -115,8 +143,9 @@ export default function AdminLayout({ cashierHome = false, accountLabel, allowed
     <div className="admin-main min-w-0" data-home={activeSection === "inicio" || undefined}>
       <header ref={headerRef} className="admin-page-header sticky top-0 z-30 flex items-start justify-between gap-4 bg-[#dcefff]/95 px-4 pb-4 pt-5 backdrop-blur sm:px-6 sm:pt-7">
         <div className="flex min-w-0 items-center gap-3 sm:gap-4"><button type="button" onClick={() => setOpen(true)} className="shrink-0 p-2 text-[#061d70] lg:hidden" aria-label="Abrir navegación"><Menu size={21} /></button><PageIcon size={36} aria-hidden="true" className="shrink-0 text-[#087fc7]" /><div className="min-w-0"><h1 className="wrap-break-word text-[clamp(1.25rem,1.6vw,1.55rem)] font-semibold leading-tight text-[#061d70]">{pageTitle ?? titles[activeSection] ?? "Administración"}</h1><p className="mt-1 text-sm text-[#526d80]">{pageDescription ?? detail.description}</p></div></div>
-        <div className="flex shrink-0 items-center gap-2">{(!allowedSections || cashierHome) && <AdminNotifications onNavigate={onChangeSection} />}{onExportCSV && <button type="button" onClick={onExportCSV} className="inline-flex items-center gap-2 px-2 py-2 text-xs font-medium text-[#061d70] hover:text-[#087fc7]"><Download size={16} /><span className="hidden sm:inline">Exportar</span></button>}{accountLabel ? <details className="cash-account"><summary><UserCircle /><span>{accountLabel}</span><ChevronDown size={16}/></summary><div><p>{userEmail}</p><button type="button" onClick={() => void supabase?.auth.signOut()}>Cerrar sesión</button></div></details> : <span className="hidden max-w-48 truncate text-xs text-[#526d80] md:block">{userEmail}</span>}</div>
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2"><button type="button" onClick={() => void toggleFullscreen()} aria-label={fullscreen ? "Salir de pantalla completa" : "Pantalla completa"} title={fullscreen ? "Salir de pantalla completa" : "Pantalla completa"} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-[#061d70] hover:bg-[#c6eaff] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#087fc7]">{fullscreen ? <Minimize size={20} /> : <Maximize size={20} />}</button>{(!allowedSections || cashierHome) && <AdminNotifications onNavigate={onChangeSection} />}{onExportCSV && <button type="button" onClick={onExportCSV} className="inline-flex items-center gap-2 px-2 py-2 text-xs font-medium text-[#061d70] hover:text-[#087fc7]"><Download size={16} /><span className="hidden sm:inline">Exportar</span></button>}{accountLabel ? <details className="cash-account"><summary><UserCircle /><span>{accountLabel}</span><ChevronDown size={16}/></summary><div><p>{userEmail}</p><button type="button" onClick={() => void supabase?.auth.signOut()}>Cerrar sesión</button></div></details> : <span className="hidden max-w-48 truncate text-xs text-[#526d80] md:block">{userEmail}</span>}</div>
       </header>
+      {fullscreenMessage && <p role="status" className="mx-4 mb-2 text-sm text-[#8a3200]">{fullscreenMessage}</p>}
       <main className="admin-content px-3 pb-6 pt-1 sm:px-5 lg:px-6">{(!allowedSections || allowedSections.includes("breb")) && <BrebNotices showHistory={activeSection === "breb"} />}{children}</main>
     </div>
   </div>;

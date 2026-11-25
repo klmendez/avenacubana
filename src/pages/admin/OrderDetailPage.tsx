@@ -1,3 +1,4 @@
+import { placeLabel } from '../../lib/tablePlaces';
 import { NEQUI_PHONE, paymentMethodLabel } from '../../data/constants';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -292,7 +293,7 @@ export default function OrderDetailPage() {
                       )}
 
                       <div className="mt-1 text-sm text-gray-600">Precio del producto: {cop(baseLine)}</div>
-                      {order.servicio === 'local' && <label className="mt-3 flex items-center gap-2 text-sm font-semibold text-[#087fc7]"><input type="checkbox" checked={Boolean(item.servido)} onChange={async event => { const served = event.target.checked; try { await OrderService.setItemServed(order.id, item.id, served); setOrder(current => current ? { ...current, items: current.items.map(i => i.id === item.id ? { ...i, servido: served } : i) } : current); } catch { alert('No se pudo actualizar el producto. Inténtalo nuevamente.'); } }} /> Llevado a la mesa {item.qty > 1 ? `(las ${item.qty} unidades)` : ''}</label>}
+                      {order.servicio === 'local' && <label className="mt-3 flex items-center gap-2 text-sm font-semibold text-[#087fc7]"><input type="checkbox" checked={Boolean(item.servido)} onChange={async event => { const served = event.target.checked; try { await OrderService.setItemServed(order.id, item.id, served); setOrder(current => current ? { ...current, items: current.items.map(i => i.id === item.id ? { ...i, servido: served } : i) } : current); } catch { alert('No se pudo actualizar el producto. Inténtalo nuevamente.'); } }} /> Llevado a {order.cliente.mesa ? placeLabel(order.cliente.mesa) : "la mesa"} {item.qty > 1 ? `(las ${item.qty} unidades)` : ''}</label>}
                       {item.note?.trim() ? <div className="mt-2 border-l-2 border-rojo pl-3 text-sm text-gray-700"><span className="font-semibold">Indicación:</span> {item.note}</div> : null}
 
                       {toppingNames.length > 0 && (
@@ -431,7 +432,7 @@ export default function OrderDetailPage() {
                 )}
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500">Servicio:</span>
-                  <span className="text-black">{order.servicio === 'domicilio' ? 'Domicilio' : order.servicio === 'local' ? `En Avena Cubana Pop${order.cliente.mesa ? ` · Mesa ${order.cliente.mesa}` : ''}` : 'Para llevar'}</span>
+                  <span className="text-black">{order.servicio === 'domicilio' ? 'Domicilio' : order.servicio === 'local' ? `En Avena Cubana Pop${order.cliente.mesa ? ` · ${placeLabel(order.cliente.mesa)}` : ''}` : 'Para llevar'}</span>
                 </div>
                 {order.servicio === 'domicilio' && (
                   <>

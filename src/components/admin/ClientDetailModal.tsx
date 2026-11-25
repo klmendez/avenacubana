@@ -1,3 +1,4 @@
+import { placeLabel } from '../../lib/tablePlaces';
 import { X, MapPin, Phone, ShoppingBag, DollarSign, Calendar, Cake, Mail, Pencil, Tag, StickyNote, Trash2, GitMerge, Plus, IdCard } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { OrderService } from '../../services/orderService';
@@ -418,7 +419,7 @@ export default function ClientDetailModal({ client, onClose, onChanged }: Client
                           {order.items.map(item => `${item.qty} × ${item.product.name}`).join(', ')} · {order.estado}
                         </div>
                         <div className="text-xs text-gray-400 mt-1">
-                          {order.servicio === 'domicilio' ? `📍 ${order.cliente.direccion}` : order.servicio === 'local' ? `En Avena Cubana Pop${order.cliente.mesa ? ` · Mesa ${order.cliente.mesa}` : ''}` : 'Para recoger'}
+                          {order.servicio === 'domicilio' ? `📍 ${order.cliente.direccion}` : order.servicio === 'local' ? `En Avena Cubana Pop${order.cliente.mesa ? ` · ${placeLabel(order.cliente.mesa)}` : ''}` : 'Para recoger'}
                         </div>
                       </div>
                     );

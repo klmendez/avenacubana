@@ -2,9 +2,9 @@ import { catalogProductImage } from "../../lib/catalogFamilies";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "../../lib/supabase";
 import ScrollableTable from "./ScrollableTable";
-import { Boxes, Search, Plus, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { Boxes, Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 
-type Item = { id: string; name: string; unit: string; quantity: number; minimum_quantity: number };
+type Item = { id: string; name: string; unit: string; quantity: number; minimum_quantity: number; deleted_at: string | null };
 type Movement = { actor_email?: string; id: string; inventory_item_id: string; quantity_change: number; reason: string; created_at: string };
 type Catalog = { id: string; name: string; price: number; available: boolean; item_type: string; category: string; image_url: string | null };
 type Requirement = { inventory_item_id: string; catalog_item_id: string; quantity_required: number };
@@ -12,6 +12,7 @@ const empty = { name: "", unit: "unidad", minimum: "0", initial: "0" };
 
 export default function InventoryAdmin({ staff = false }: { staff?: boolean }) {
   const [items, setItems] = useState<Item[]>([]);
+  const [itemNames, setItemNames] = useState<Record<string, string>>({});
   const [tab, setTab] = useState<"existencias" | "movimientos" | "ajustes">("existencias");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Todas");
@@ -49,13 +50,14 @@ export default function InventoryAdmin({ staff = false }: { staff?: boolean }) {
   const load = async () => {
     if (!supabase) { setMessage("Supabase no está configurado."); return; }
     const [stock, history, products, linked] = await Promise.all([
-      supabase.from("inventory_items").select("id,name,unit,quantity,minimum_quantity").order("name"),
+      supabase.from("inventory_items").select("id,name,unit,quantity,minimum_quantity,deleted_at").order("name"),
       loadHistory().then(data => ({ data, error: null })).catch(error => ({ data: [], error })),
-      staff ? Promise.resolve({ data: [], error: null }) : supabase.from("catalog_items").select("id,name,item_type,category,image_url,price,available").order("name"),
+      staff ? Promise.resolve({ data: [], error: null }) : supabase.from("catalog_items").select("id,name,item_type,category,image_url,price,available").is("deleted_at", null).order("name"),
       staff ? Promise.resolve({ data: [], error: null }) : supabase.from("catalog_inventory_requirements").select("inventory_item_id,catalog_item_id,quantity_required"),
     ]);
     if (stock.error || history.error || products.error || linked.error) { setMessage(stock.error?.message || history.error?.message || products.error?.message || linked.error?.message || "No se pudo cargar el inventario."); return; }
-    setItems(stock.data as Item[]); setMovements(history.data as Movement[]);
+    setItemNames(Object.fromEntries((stock.data as Item[]).map(item => [item.id, item.name])));
+    setItems((stock.data as Item[]).filter(item => !item.deleted_at)); setMovements(history.data as Movement[]);
     setCatalog(products.data as Catalog[]); setRequirements(linked.data as Requirement[]);
   };
   useEffect(() => { const timer = window.setTimeout(() => { void load(); }, 0); return () => window.clearTimeout(timer); }, []);
@@ -94,6 +96,14 @@ export default function InventoryAdmin({ staff = false }: { staff?: boolean }) {
       p_category: commercial.category.trim(), p_visible: commercial.visible
     });
     if (error) setMessage(error.message); else { setEditing(null); setForm(empty); setMessage("Datos del producto actualizados."); await load(); setTab("existencias"); }
+    setBusy(false);
+  };
+  const removeItem = async (item: Item) => {
+    if (!supabase || staff || busy || !window.confirm(`?Eliminar ${item.name} del inventario y de las opciones de venta? Se conservar? el historial.`)) return;
+    setBusy(true); setMessage("");
+    const { error } = await supabase.rpc("archive_inventory_product", { p_id: item.id });
+    if (error) setMessage(error.message);
+    else { setMessage("Producto eliminado del inventario y de las opciones de venta."); await load(); }
     setBusy(false);
   };
   const beginEdit = (item: Item) => { const product = itemCatalog(item); if (!product) { setMessage("Falta vincular este producto al catálogo."); return; } setCommercial({ price: String(product.price), category: product.category, visible: product.available, expected: Number(item.quantity) }); setEditing(item.id); setForm({ name: item.name, unit: item.unit, minimum: String(item.minimum_quantity), initial: String(item.quantity) }); setMessage(""); setTab("ajustes"); };
@@ -140,7 +150,7 @@ export default function InventoryAdmin({ staff = false }: { staff?: boolean }) {
     {message && <p role="status" className="mt-4 text-sm text-[#087fc7]">{message}</p>}
     {tab === "existencias" && <section className="pt-5">
       <div className="inventory-toolbar flex flex-wrap items-end gap-3"><label className="relative min-w-[14rem] flex-1"><span className="sr-only">Buscar producto</span><Search size={18} className="absolute left-3 top-3 text-[#526d80]" /><input value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} placeholder="Buscar producto..." className="w-full rounded-full border border-[#b6d9ed] bg-white py-2.5 pl-10 pr-4 text-sm" /></label>{!staff && <label><span className="sr-only">Categoría</span><select value={category} onChange={e => { setCategory(e.target.value); setPage(1); }} className="rounded-full border border-[#b6d9ed] bg-white px-4 py-2.5 text-sm"><option value="Todas">Categoría: Todas</option>{categories.map(name => <option key={name} value={name}>{name}</option>)}</select></label>}<label><span className="sr-only">Estado</span><select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }} className="rounded-full border border-[#b6d9ed] bg-white px-4 py-2.5 text-sm"><option value="Todos">Estado: Todos</option><option>Disponible</option><option>Stock bajo</option><option>Agotado</option></select></label>{<button type="button" onClick={startCreate} className="inline-flex items-center gap-2 rounded-full bg-[#087fc7] px-5 py-2.5 text-sm font-medium text-white"><Plus size={18} /> Nuevo producto</button>}<button type="button" onClick={() => { setTab("movimientos"); setMessage(""); }} className="inline-flex items-center gap-2 rounded-full border border-[#087fc7] px-5 py-2.5 text-sm font-medium text-[#087fc7]"><Plus size={18} /> Registrar entrada</button></div>
-      <div className="mt-6"><ScrollableTable label="Existencias de inventario"><table><thead><tr><th>Producto</th><th>Unidad</th><th>Disponible</th><th>Mínimo</th><th>Estado</th>{!staff && <th>Acciones</th>}</tr></thead><tbody>{visible.map(item => { const label = itemStatus(item); return <tr key={item.id}><td><span className="flex items-center gap-3"><button type="button" onClick={() => selectForEntry(item)} aria-label={`Registrar entrada de ${item.name}`} className="flex items-center gap-3 text-left hover:text-[#087fc7]">{stockPhoto(item)}<span className="font-medium underline-offset-2 hover:underline">{item.name}</span></button></span></td><td>{item.unit}</td><td>{Number(item.quantity)}</td><td>{Number(item.minimum_quantity)}</td><td><span className={`inventory-status ${label === "Disponible" ? "is-available" : label === "Agotado" ? "is-empty" : "is-low"}`}><span aria-hidden="true">●</span> {label}</span></td>{!staff && <td><button type="button" onClick={() => beginEdit(item)} aria-label={`Editar ${item.name}`} title="Editar datos" className="p-2 text-[#087fc7]"><Pencil size={17} /></button></td>}</tr>; })}</tbody></table></ScrollableTable>{!visible.length && <p className="py-10 text-center text-sm text-[#526d80]">No encontramos productos con esos filtros.</p>}</div>
+      <div className="mt-6"><ScrollableTable label="Existencias de inventario"><table><thead><tr><th>Producto</th><th>Unidad</th><th>Disponible</th><th>Mínimo</th><th>Estado</th>{!staff && <th>Acciones</th>}</tr></thead><tbody>{visible.map(item => { const label = itemStatus(item); return <tr key={item.id}><td><span className="flex items-center gap-3"><button type="button" onClick={() => selectForEntry(item)} aria-label={`Registrar entrada de ${item.name}`} className="flex items-center gap-3 text-left hover:text-[#087fc7]">{stockPhoto(item)}<span className="font-medium underline-offset-2 hover:underline">{item.name}</span></button></span></td><td>{item.unit}</td><td>{Number(item.quantity)}</td><td>{Number(item.minimum_quantity)}</td><td><span className={`inventory-status ${label === "Disponible" ? "is-available" : label === "Agotado" ? "is-empty" : "is-low"}`}><span aria-hidden="true">●</span> {label}</span></td>{!staff && <td><button type="button" onClick={() => beginEdit(item)} aria-label={`Editar ${item.name}`} title="Editar datos" className="p-2 text-[#087fc7]"><Pencil size={17} /></button><button type="button" disabled={busy} onClick={() => void removeItem(item)} aria-label={`Eliminar ${item.name}`} title="Eliminar producto" className="p-2 text-red-700"><Trash2 size={17} /></button></td>}</tr>; })}</tbody></table></ScrollableTable>{!visible.length && <p className="py-10 text-center text-sm text-[#526d80]">No encontramos productos con esos filtros.</p>}</div>
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-sm text-[#526d80]"><span>Mostrando {filtered.length ? (currentPage - 1) * 8 + 1 : 0}–{Math.min(currentPage * 8, filtered.length)} de {filtered.length} productos</span><div className="flex items-center gap-2"><button type="button" aria-label="Página anterior" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)} className="rounded-full border border-[#b6d9ed] p-2 disabled:opacity-40"><ChevronLeft size={17} /></button><span className="px-2">{currentPage} / {pages}</span><button type="button" aria-label="Página siguiente" disabled={currentPage === pages} onClick={() => setPage(currentPage + 1)} className="rounded-full border border-[#b6d9ed] p-2 disabled:opacity-40"><ChevronRight size={17} /></button></div></div>
     </section>}
     {tab === "movimientos" && <section className="inventory-forms space-y-8 pt-6">
@@ -176,7 +186,7 @@ export default function InventoryAdmin({ staff = false }: { staff?: boolean }) {
           <label className="text-sm">Período<select aria-label="Período de movimientos" value={period} onChange={e => { setPeriod(e.target.value); setMovementPage(1); }} className="ml-2 border bg-white px-3 py-2"><option value="dia">Hoy</option><option value="semana">Esta semana</option><option value="mes">Este mes</option><option value="ano">Este año</option><option value="todos">Todo el historial</option></select></label>
           <label className="text-sm">Tipo<select aria-label="Tipo de movimiento" value={movementType} onChange={e => { setMovementType(e.target.value); setMovementPage(1); }} className="ml-2 border bg-white px-3 py-2"><option value="todos">Todos</option><option value="entrada">Entradas</option><option value="salida">Salidas</option></select></label>
         </div>
-        {visibleMovements.length ? <div className="inventory-history">{visibleMovements.map(m => <div key={m.id}><span>{items.find(i => i.id === m.inventory_item_id)?.name || "Producto"}<small>{m.reason} · {m.actor_email || "Autor no registrado"} · {new Date(m.created_at).toLocaleString("es-CO", { dateStyle: "short", timeStyle: "short", timeZone: "America/Bogota" })}</small></span><strong className={m.quantity_change > 0 ? "text-green-700" : "text-amber-700"}>{Number(m.quantity_change) > 0 ? "+" : ""}{Number(m.quantity_change)}</strong></div>)}</div> : <p className="inventory-empty">No hay movimientos para estos filtros.</p>}
+        {visibleMovements.length ? <div className="inventory-history">{visibleMovements.map(m => <div key={m.id}><span>{itemNames[m.inventory_item_id] || "Producto"}<small>{m.reason} · {m.actor_email || "Autor no registrado"} · {new Date(m.created_at).toLocaleString("es-CO", { dateStyle: "short", timeStyle: "short", timeZone: "America/Bogota" })}</small></span><strong className={m.quantity_change > 0 ? "text-green-700" : "text-amber-700"}>{Number(m.quantity_change) > 0 ? "+" : ""}{Number(m.quantity_change)}</strong></div>)}</div> : <p className="inventory-empty">No hay movimientos para estos filtros.</p>}
         {movementPages > 1 && <div className="mt-4 flex items-center justify-end gap-3 text-sm"><button type="button" disabled={movementPage === 1} onClick={() => setMovementPage(n => n - 1)}>Anterior</button><span>{movementPage} / {movementPages}</span><button type="button" disabled={movementPage === movementPages} onClick={() => setMovementPage(n => n + 1)}>Siguiente</button></div>}
       </div>
     </section>}

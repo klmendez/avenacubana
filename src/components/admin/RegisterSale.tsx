@@ -1,6 +1,7 @@
+import { placeLabel, tablePlaces } from '../../lib/tablePlaces';
 import { catalogProductImage } from "../../lib/catalogFamilies";
 import { paymentMethodLabel } from '../../data/constants';
-﻿import SaleTicket, { type Ticket } from "./SaleTicket";
+import SaleTicket, { type Ticket } from "./SaleTicket";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Coffee, Sandwich, Search, ShoppingBag, ShoppingCart, Store, Bike, Trash2, Zap } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -24,7 +25,7 @@ export default function RegisterSale({ staff = false, orderOnly = false, cashier
   const additionOrderId = params.get('agregar');
   const additionRequest = useRef<{ payload: string; id: string } | null>(null);
   const initialTable = params.get('mesa');
-  const tableFromLink = initialTable && ['1','2','3','4','5'].includes(initialTable) ? initialTable : '';
+  const tableFromLink = initialTable && tablePlaces.includes(Number(initialTable)) ? initialTable : '';
   const [ticket,setTicket] = useState<Ticket | null>(null);
   const [category, setCategory] = useState("Todas");
   const [items, setItems] = useState<SaleItem[]>([]);
@@ -191,7 +192,7 @@ export default function RegisterSale({ staff = false, orderOnly = false, cashier
     if (!selected.length) { setMessage("Agrega al menos un producto."); return; }
     if (!additionOrderId && (name.trim() || cleanPhone) && (!name.trim() || !/^3\d{9}$/.test(cleanPhone))) { setMessage("Para asociar un cliente, indica su nombre y celular de 10 dígitos."); return; }
     if (!additionOrderId && !generic && !name.trim()) { setMessage("Indica el nombre y celular o selecciona Cliente genérico."); return; }
-    if (service === 'local' && !['1','2','3','4','5'].includes(tableNumber)) { setMessage('Selecciona una mesa del 1 al 5.'); return; }
+    if (service === 'local' && !tablePlaces.includes(Number(tableNumber))) { setMessage('Selecciona una mesa o barra.'); return; }
     if (service === 'domicilio' && (!address.trim() || !selectedZone || selectedZone.price === null)) { setMessage('Indica la dirección y un barrio con tarifa de domicilio.'); return; }
     if (!quote.data) { setMessage(quote.error || "Espera mientras se actualizan los precios."); return; }
     const types = new Set(selected.map(item => item.type));
@@ -229,7 +230,7 @@ export default function RegisterSale({ staff = false, orderOnly = false, cashier
   return <div ref={saleRef} className={`register-sale mx-auto text-[#071e55] ${cashier ? 'cash-sale' : 'max-w-5xl'}`}>
     {ticket && <SaleTicket ticket={ticket}/>}
     {additionOrderId && <div className="mb-4 rounded-lg bg-sky-100 p-4">
-      <strong>Agregar productos a la cuenta de la mesa {tableFromLink}</strong>
+      <strong>Agregar productos a la cuenta de {placeLabel(tableFromLink)}</strong>
       <p>Selecciona los productos adicionales y agr?galos a la cuenta pendiente.</p>
       <Link to={staff ? "/admin?seccion=mesas" : "/admin?seccion=pedidos"} className="text-sm underline">Volver a mesas</Link>
     </div>}
@@ -275,7 +276,7 @@ export default function RegisterSale({ staff = false, orderOnly = false, cashier
           <label className="flex items-center gap-2"><input type="radio" name="saleService" checked={service === 'llevar'} onChange={() => setService('llevar')} /> {cashier && <ShoppingBag size={17} />} Para llevar</label>
           <label className="flex items-center gap-2"><input type="radio" name="saleService" checked={service === 'domicilio'} onChange={() => setService('domicilio')} /> {cashier && <Bike size={17} />} Domicilio</label>
         </fieldset>
-        {service === 'local' && <label className="mt-4 block text-sm font-medium">Número de mesa<select required value={tableNumber} onChange={event => setTableNumber(event.target.value)} className="mt-2 w-full border bg-white px-3 py-2"><option value="">Seleccionar mesa</option>{[1, 2, 3, 4, 5].map(number => <option key={number} value={number}>Mesa {number}</option>)}</select></label>}
+        {service === 'local' && <label className="mt-4 block text-sm font-medium">Número de mesa<select required value={tableNumber} onChange={event => setTableNumber(event.target.value)} className="mt-2 w-full border bg-white px-3 py-2"><option value="">Seleccionar mesa o barra</option>{tablePlaces.map(number => <option key={number} value={number}>{placeLabel(number)}</option>)}</select></label>}
         {service === 'domicilio' && <><label className="mt-4 block text-xs font-semibold uppercase">Barrio<select value={zoneId} onChange={event => setZoneId(event.target.value)} className="mt-2 w-full border bg-white px-3 py-2"><option value="">Seleccionar barrio</option>{zones.map(zone => <option key={zone.id} value={zone.id} disabled={zone.price === null}>{zone.name} · {zone.price === null ? 'Sin tarifa' : cop(zone.price)}</option>)}</select></label>{zoneError && <p role="alert" className="mt-1 text-xs text-red-700">{zoneError}</p>}<label className="mt-4 block text-xs font-semibold uppercase">Dirección<input value={address} onChange={event => setAddress(event.target.value)} className="mt-2 w-full border bg-white px-3 py-2" /></label><label className="mt-4 block text-xs font-semibold uppercase">Referencia (opcional)<input value={reference} onChange={event => setReference(event.target.value)} className="mt-2 w-full border bg-white px-3 py-2" /></label></>}
         {!orderOnly && <fieldset className="mt-5 space-y-2 text-sm"><legend className="mb-2 text-xs font-semibold uppercase">{cashier ? 'Cobro' : '¿Cuándo se cobra?'}</legend>
           <label className="flex items-start gap-2"><input type="radio" name="collectWhen" checked={collectNow === true} onChange={() => setCollectNow(true)} /> <span>Cobrar ahora <small className="block text-[#526d80]">Registra el cobro completo junto con el pedido.</small></span></label>

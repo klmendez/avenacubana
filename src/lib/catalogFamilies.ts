@@ -6,7 +6,7 @@ export const price = (p: Product) => p.category === "frutafresh" && isFixedPrice
 type Option = { label: string; rank: number; product: Product };
 export type Family = { name: string; category: string; options: Option[] };
 
-function describe(productName: string, categoryId?: string) {
+export function describe(productName: string, categoryId?: string) {
   const raw = productName.trim();
   const suffix = /\s+((?:vaso\s*)?(\d+)\s*(oz|lt|litros?)|vaso|gal[oó]n|por unidad|1 unidad|und|paquete\s+x\s*\d+)$/i.exec(raw);
   const base = suffix ? raw.slice(0,suffix.index) : raw;
@@ -15,7 +15,7 @@ function describe(productName: string, categoryId?: string) {
   let category = "Especialidades";
   if (/^(avena|avena cubana)$/.test(key)) { name = "Avena Cubana"; category = "Avenas"; }
   else if (/^(super )?sevillana$/.test(key)) { name = "Súper Sevillana"; category = "Sevillanas"; }
-  else if (/^kumis( tradicional)?$/.test(key)) { name = "Kumis tradicional"; category = "Kumis"; }
+  else if (/^kumis\b/.test(key)) { name = /^kumis( tradicional)?$/.test(key) ? "Kumis tradicional" : base; category = "Kumis"; }
   else if (/^yogur(t)?\b/.test(key)) { category = "Yogures"; name = base.replace(/^yogurt?\s+(de\s+)?/i,"Yogurt "); }
   else if (/acompan|antojo/.test(fold(categoryId || ""))) category = "Acompañantes";
   const amount = Number(suffix?.[2]);
@@ -28,9 +28,25 @@ function describe(productName: string, categoryId?: string) {
 const presentationPhotos = import.meta.glob<string>("../assets/carta/presentaciones/*.webp", {
   eager: true, import: "default",
 });
+const generatedPhotos = import.meta.glob<string>("../assets/carta/generadas/*.png", {
+  eager: true, import: "default",
+});
 
 export function catalogProductImage(productName: string, image?: string | null) {
   if (image && !image.startsWith("/productos/")) return image;
+
+  const productKey = fold(productName);
+  let generatedKey = "";
+  if (/^kumis patiano\b/.test(productKey)) generatedKey = "kumis-patiano";
+  else if (/^kumis sin azucar\b/.test(productKey)) generatedKey = "kumis-sin-azucar";
+  else if (/^yogurt? cuchareable\b/.test(productKey)) {
+    const flavor = ["fresa", "mora", "melocoton"].find(value => productKey.includes(value));
+    if (flavor) generatedKey = `cuchareable-${flavor}`;
+  } else if (/^yogurt? griego\b/.test(productKey)) {
+    const size = productKey.match(/\b(6|12|16)\s*oz\b/)?.[1] ?? "12";
+    generatedKey = `griego-${size}oz-v2`;
+  }
+  if (generatedKey) return generatedPhotos[`../assets/carta/generadas/${generatedKey}.png`];
 
   const presentation = describe(productName);
   const key = fold(presentation.name).replace(/\s+/g, "-");

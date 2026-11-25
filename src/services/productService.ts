@@ -30,7 +30,7 @@ export interface FirestoreProduct {
 export const ProductService = {
   async getProducts(): Promise<FirestoreProduct[]> {
     if (!supabase) throw new Error('Supabase no configurado');
-    const { data, error } = await supabase.from('catalog_items').select('*').order('name');
+    const { data, error } = await supabase.from('catalog_items').select('*').is('deleted_at', null).order('name');
     if (error) throw new Error(error.message);
     return newestProductsFirst((data ?? []).map(row => ({ id: row.id, itemType: row.item_type, name: row.name, description: row.description, categoryId: row.category, price: row.price, priceType: 'fijo' as const, priceOptions: { fijo: row.price }, image: row.image_url, disponible: row.available, createdAt: row.created_at })));
   },

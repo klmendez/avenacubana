@@ -1,5 +1,6 @@
 .admin-theme:has(.co-board), .admin-theme:has(.co-board) .admin-page-header {background:#fff}
 .co-board {container-type:inline-size;max-width:100rem;margin:auto;color:#0a2049;display:grid;gap:1.45rem;padding-bottom:2rem}
+.co-board, .co-board > section {min-width:0}
 .co-board h2,.co-tools,.co-tools label,.co-tables header,.co-key,.co-table-grid strong,.co-tag,.co-actions,.co-tabs {display:flex;align-items:center}
 .co-board h2 {font-size:clamp(1.1rem,1.6vw,1.6rem);font-weight:700;gap:.55rem}
 .co-table-grid small {display:block}
@@ -7,11 +8,14 @@
 .co-key {gap:.8rem;font-size:.78rem;flex-wrap:wrap}
 .co-key span::before {content:'';display:inline-block;width:.6rem;height:.6rem;border-radius:50%;margin-right:.3rem;background:#14923c}
 .co-key span:nth-child(2)::before {background:#68c6ff}.co-key span:nth-child(3)::before {background:#ffb318}
-.co-table-grid {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.75rem;margin-top:.85rem}
+.co-place-group {margin-top:1rem;min-width:0}
+.co-place-group h3 {font-size:1rem;font-weight:700}
+.co-table-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,10rem),1fr));gap:.75rem;margin-top:.85rem}
 .co-table-grid button {position:relative;text-align:left;padding:1rem .8rem;min-height:7.3rem;border-radius:.85rem;background:#e9f6ff;border:1px solid #d2eafa}
 .co-table-grid button[data-state="Ocupada"] {background:#e6f7df;border-color:#cfebc8}
 .co-table-grid button[data-state="Con pedido"] {background:#fff6e0;border-color:#f5e9cc}
 .co-table-grid button[aria-expanded=true] {outline:2px solid #078bd4;outline-offset:1px}
+.co-table-grid button:focus-visible {outline:2px solid #0079c7;outline-offset:2px}
 .co-table-grid strong {gap:.5rem;font-size:1.1rem}
 .co-table-status,.co-tag {border-radius:2rem;padding:.23rem .65rem;background:#c6eaff;font-size:.79rem;font-weight:600}
 .co-table-status {display:inline-block;margin:.4rem 0}
@@ -51,8 +55,24 @@
 .co-tag.cancelado {background:#f7e5e5;color:#963636}
 .co-actions :is(button,a) {min-width:2rem;min-height:2.5rem;display:grid;place-items:center}
 .co-empty {text-align:center;padding:1.8rem;color:#4b617b}
-@container(max-width:62rem){.co-table-grid{grid-template-columns:repeat(auto-fit,minmax(8.5rem,1fr))}}
+
 @container(max-width:40rem){.co-tools h2{width:100%}.co-tools label:first-of-type{max-width:none;flex-basis:100%}.co-tabs{gap:.35rem}.co-tabs button{font-size:.8rem;padding:.45rem .65rem}}
 
 .co-open-order { cursor: pointer; }
 .co-open-order:hover > td, .co-open-order:focus-within > td { background-color: #f0f8ff; }
+
+/* En pantallas estrechas cada pedido se muestra completo, sin desplazamiento lateral. */
+@container (max-width: 52rem) {
+  .co-order-table { overflow: visible; border: 0; background: transparent; }
+  .co-order-table table:has(th:nth-child(7)) { display: block; min-width: 0; }
+  .co-order-table thead { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .co-order-table tbody { display: grid; gap: .75rem; }
+  .co-order-table tbody > tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem 1rem; padding: .85rem; border: 1px solid #d2eafa; border-radius: .85rem; background: #fff; }
+  .co-order-table tbody > tr > td { display: block; min-width: 0; padding: 0; border: 0; overflow-wrap: anywhere; }
+  .co-order-table tbody > tr > td[data-label]::before { content: attr(data-label); display: block; margin-bottom: .2rem; color: #536a83; font-size: .72rem; font-weight: 600; }
+  .co-order-table .co-expanded-row { margin-top: -.5rem; border-top: 0; }
+  .co-order-table .co-expanded-row > td { grid-column: 1 / -1; }
+  .co-order-table select { max-width: 100%; }
+  .co-order-table .co-actions { flex-wrap: wrap; gap: .35rem; }
+  .co-order-table .co-actions :is(button, a) { min-width: 2.75rem; min-height: 2.75rem; }
+}

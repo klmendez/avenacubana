@@ -27,7 +27,7 @@ export default function CashierHome() {
         const stockTask = async () => {
           let alerts = 0;
           for (let start = 0; ; start += 500) {
-            const result = await supabase!.from('inventory_items').select('quantity,minimum_quantity').order('id').range(start, start + 499);
+            const result = await supabase!.from('inventory_items').select('quantity,minimum_quantity').is('deleted_at', null).order('id').range(start, start + 499);
             if (result.error) throw result.error;
             alerts += result.data.filter(item => Number(item.quantity) <= Number(item.minimum_quantity)).length;
             if (result.data.length < 500) return alerts;
