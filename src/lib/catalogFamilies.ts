@@ -3,7 +3,7 @@ import { isFixedPrice, type Product } from "../data/products";
 export const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 const familyPhotos = import.meta.glob<string>("../assets/carta/*.webp", { eager: true, import: "default" });
 export const price = (p: Product) => p.category === "frutafresh" && isFixedPrice(p.prices) ? p.prices.fijo : 0;
-type Option = { label: string; rank: number; product: Product };
+type Option = { label: string; size: string; flavor: string; rank: number; product: Product };
 export type Family = { name: string; category: string; options: Option[] };
 
 export function describe(productName: string, categoryId?: string) {
@@ -18,6 +18,10 @@ export function describe(productName: string, categoryId?: string) {
   else if (/^kumis\b/.test(key)) { name = /^kumis( tradicional)?$/.test(key) ? "Kumis tradicional" : base; category = "Kumis"; }
   else if (/^yogur(t)?\b/.test(key)) { category = "Yogures"; name = base.replace(/^yogurt?\s+(de\s+)?/i,"Yogurt "); }
   else if (/acompan|antojo/.test(fold(categoryId || ""))) category = "Acompañantes";
+  else if (/kumis/.test(fold(categoryId || ""))) category = "Kumis";
+  else if (/yogur/.test(fold(categoryId || ""))) category = "Yogures";
+  else if (/sevillana/.test(fold(categoryId || ""))) category = "Sevillanas";
+  else if (/avena/.test(fold(categoryId || ""))) category = "Avenas";
   const amount = Number(suffix?.[2]);
   const oz = suffix?.[3]?.toLowerCase() === "oz";
   const label = amount ? (oz ? `Vaso ${amount} oz` : `${amount} ${amount===1?"litro":"litros"}`) : suffix?.[1] || "Presentación por confirmar";
@@ -64,10 +68,16 @@ export function catalogProductImage(productName: string, image?: string | null) 
 export function groupCatalog(products: Product[]) {
   const families=new Map<string,Family>();
   for(const item of products){
-    const {name,category,label,rank}=describe(item.name, item.categoryId);
+    const parsed=describe(item.name, item.categoryId);
+    const name=item.familyName?.trim() || parsed.name;
+    const category=describe(name, item.categoryId).category;
+    const size=item.presentationName?.trim() || parsed.label;
+    const flavor=item.flavorName?.trim() || '';
+    const label=flavor ? `${flavor} · ${size}` : size;
+    const rank=parsed.rank;
     const key=category+"·"+fold(name);
     const family=families.get(key) || {name,category,options:[]};
-    family.options.push({ label, rank, product: item });families.set(key,family);
+    family.options.push({ label, size, flavor, rank, product: item });families.set(key,family);
   }
   for (const family of families.values()) family.options.sort((a, b) => a.rank - b.rank);
   return [...families.values()];

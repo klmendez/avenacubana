@@ -15,6 +15,9 @@ function ProductRow({family,add,guided}: {family:Family; guided:boolean; add:(pr
   const photoDialog = useRef<HTMLDialogElement>(null);
   const options = family.options;
   const current = options.find(o=>o.product.id===id) || options.find(o=>o.product.disponible && price(o.product)>0) || options[0];
+  const hasFlavors = options.some(option => option.flavor);
+  const flavors = [...new Set(options.map(option => option.flavor))];
+  const sizes = hasFlavors ? options.filter(option => option.flavor === current.flavor) : options;
   const item = current.product;
   const unit = price(item);
   const image = catalogProductImage(item.name, item.image) ?? "/avena-cubana-logo.png";
@@ -27,11 +30,12 @@ function ProductRow({family,add,guided}: {family:Family; guided:boolean; add:(pr
       </button>
       <div><h3>{family.name}</h3><p>{item.description || (family.category === "Avenas" ? "Cremosa y refrescante." : "")}</p></div>
     </header>
-    <fieldset className="menu-sizes"><legend>Presentación</legend>
-      {options.map(({label,product}) => (
+    {hasFlavors && <label className="block text-sm font-semibold">Sabor<select aria-label={`Sabor de ${family.name}`} value={current.flavor} onChange={event => { const choices = options.filter(option => option.flavor === event.target.value); const next = choices.find(option => option.product.disponible && price(option.product)>0) || choices[0]; if (next) setId(next.product.id); }} className="mt-1 block w-full rounded-lg border border-sky-200 bg-white px-3 py-2">{flavors.map(flavor => <option key={flavor} value={flavor}>{flavor || 'Sin sabor'}</option>)}</select></label>}
+    <fieldset className="menu-sizes"><legend>{hasFlavors ? 'Tamaño' : 'Presentación'}</legend>
+      {sizes.map(({size,product}) => (
         <label key={product.id} className="menu-size">
           <input type="radio" name={options[0].product.id} checked={current.product.id === product.id} disabled={!product.disponible || price(product)<=0} onChange={()=>setId(product.id)}/>
-          <span>{label}</span>
+          <span>{size}</span>
           <span className="menu-price">{price(product)>0 ? cop(price(product)) : "Por confirmar"}
             {price(product)>0 && !product.disponible && <small>Agotado</small>}
           </span>

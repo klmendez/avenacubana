@@ -6,10 +6,12 @@ import { uploadCatalogImage, validateCatalogImage } from "../../lib/catalogImage
 
 import ProductList from "./ProductList";
 import PresentationEditor from "./PresentationEditor";
+import ProductCategorySelect from "./ProductCategorySelect";
 export type CatalogItem = {
   id: string; name: string; description: string; category: string;
   item_type: "carta" | "bebida" | "otro"; price: number;
   image_url: string | null; available: boolean;
+  family_name?: string | null; presentation_name?: string | null; flavor_name?: string | null;
 };
 
 const empty = { name: "", description: "", category: "", item_type: "carta" as CatalogItem["item_type"], price: "", image_url: "", available: true };
@@ -94,7 +96,7 @@ export default function CatalogAdmin({ productsOnly = false }: { productsOnly?: 
         </label>
         <label className="text-sm font-medium">Nombre completo con presentación<input placeholder="Ej. Yogurt Fresa vaso 10 oz" required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="mt-1 block w-full border border-[#b6d9ed] bg-white px-3 py-2.5 text-sm font-normal" /></label>
         <label className="text-sm font-medium">Tipo<select value={form.item_type} onChange={e => setForm({ ...form, item_type: e.target.value as CatalogItem["item_type"] })} className="mt-1 block w-full border border-[#b6d9ed] bg-white px-3 py-2.5 text-sm font-normal"><option value="carta">Producto</option><option value="bebida">Bebida</option><option value="otro">Acompañante</option></select></label>
-        <label className="text-sm font-medium">Categoría<input required value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} placeholder="Ej. Yogurt frutal" className="mt-1 block w-full border border-[#b6d9ed] bg-white px-3 py-2.5 text-sm font-normal" /></label>
+        <label className="text-sm font-medium">Categoría<ProductCategorySelect value={form.category} onChange={value => setForm({ ...form, category: value })} existing={items.map(item => item.category)} className="mt-1 block w-full border border-[#b6d9ed] bg-white px-3 py-2.5 text-sm font-normal" /></label>
         <label className="text-sm font-medium">Precio<input required min="0" type="number" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="mt-1 block w-full border border-[#b6d9ed] bg-white px-3 py-2.5 text-sm font-normal" /></label>
         {!editing && <><label className="text-sm font-medium">Unidad<input required maxLength={30} value={stockForm.unit} onChange={e => setStockForm({ ...stockForm, unit: e.target.value })} placeholder="Vaso, litro, unidad..." className="mt-1 block w-full border border-[#b6d9ed] bg-white px-3 py-2.5 text-sm font-normal" /></label><label className="text-sm font-medium">Existencia inicial<input required type="number" min="0" step="0.001" value={stockForm.initial} onChange={e => setStockForm({ ...stockForm, initial: e.target.value })} className="mt-1 block w-full border border-[#b6d9ed] bg-white px-3 py-2.5 text-sm font-normal" /></label><label className="text-sm font-medium">Existencia mínima<input required type="number" min="0" step="0.001" value={stockForm.minimum} onChange={e => setStockForm({ ...stockForm, minimum: e.target.value })} className="mt-1 block w-full border border-[#b6d9ed] bg-white px-3 py-2.5 text-sm font-normal" /></label></>}
         <label className="text-sm font-medium sm:col-span-2">Descripción<input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="mt-1 block w-full border border-[#b6d9ed] bg-white px-3 py-2.5 text-sm font-normal" /></label>

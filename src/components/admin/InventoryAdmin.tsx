@@ -2,11 +2,14 @@ import { catalogProductImage } from "../../lib/catalogFamilies";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "../../lib/supabase";
 import ScrollableTable from "./ScrollableTable";
+import PresentationEditor from "./PresentationEditor";
+import ProductCategorySelect from "./ProductCategorySelect";
+import type { CatalogItem } from "./CatalogAdmin";
 import { Boxes, Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 
 type Item = { id: string; name: string; unit: string; quantity: number; minimum_quantity: number; deleted_at: string | null };
 type Movement = { actor_email?: string; id: string; inventory_item_id: string; quantity_change: number; reason: string; created_at: string };
-type Catalog = { id: string; name: string; price: number; available: boolean; item_type: string; category: string; image_url: string | null };
+type Catalog = CatalogItem;
 type Requirement = { inventory_item_id: string; catalog_item_id: string; quantity_required: number };
 const empty = { name: "", unit: "unidad", minimum: "0", initial: "0" };
 
@@ -23,7 +26,9 @@ export default function InventoryAdmin({ staff = false }: { staff?: boolean }) {
   const [catalog, setCatalog] = useState<Catalog[]>([]);
   const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [form, setForm] = useState(empty);
-  const [commercial, setCommercial] = useState({ price: "0", category: "", visible: false, expected: 0 });
+  const [commercial, setCommercial] = useState<{ price: string; category: string; visible: boolean; expected: number; itemType: CatalogItem['item_type'] | '' }>({ price: "0", category: "", visible: false, expected: 0, itemType: '' });
+  const [configuringPresentations, setConfiguringPresentations] = useState(false);
+  const [presentationItemId, setPresentationItemId] = useState<string | undefined>();
   const [selected, setSelected] = useState("");
   const [movementSearch, setMovementSearch] = useState("");
   const [period, setPeriod] = useState("dia");
@@ -52,7 +57,7 @@ export default function InventoryAdmin({ staff = false }: { staff?: boolean }) {
     const [stock, history, products, linked] = await Promise.all([
       supabase.from("inventory_items").select("id,name,unit,quantity,minimum_quantity,deleted_at").order("name"),
       loadHistory().then(data => ({ data, error: null })).catch(error => ({ data: [], error })),
-      staff ? Promise.resolve({ data: [], error: null }) : supabase.from("catalog_items").select("id,name,item_type,category,image_url,price,available").is("deleted_at", null).order("name"),
+      staff ? Promise.resolve({ data: [], error: null }) : supabase.from("catalog_items").select("id,name,description,item_type,category,image_url,price,available,family_name,presentation_name,flavor_name").is("deleted_at", null).order("name"),
       staff ? Promise.resolve({ data: [], error: null }) : supabase.from("catalog_inventory_requirements").select("inventory_item_id,catalog_item_id,quantity_required"),
     ]);
     if (stock.error || history.error || products.error || linked.error) { setMessage(stock.error?.message || history.error?.message || products.error?.message || linked.error?.message || "No se pudo cargar el inventario."); return; }
@@ -65,7 +70,7 @@ export default function InventoryAdmin({ staff = false }: { staff?: boolean }) {
   const create = async (event: FormEvent) => {
     event.preventDefault(); if (!supabase || busy) return;
     setBusy(true); setMessage("");
-    const { error } = await supabase.rpc("create_inventory_item", { p_name: form.name.trim(), p_unit: form.unit.trim(), p_minimum: Number(form.minimum), p_initial: Number(form.initial) });
+    const { error } = await supabase.rpc("create_configured_inventory", { p_name: form.name.trim(), p_unit: form.unit.trim(), p_minimum: Number(form.minimum), p_initial: Number(form.initial), p_category: commercial.category, p_item_type: commercial.itemType, p_price: staff ? 0 : Number(commercial.price), p_visible: staff ? false : commercial.visible });
     if (error) setMessage(error.message); else { setForm(empty); setMessage("Producto agregado al inventario."); await load(); setTab("existencias"); }
     setBusy(false);
   };
@@ -90,10 +95,10 @@ export default function InventoryAdmin({ staff = false }: { staff?: boolean }) {
     setBusy(true); setMessage("");
     const minimum = Number(form.minimum);
     if (!Number.isFinite(minimum) || minimum < 0 || !form.name.trim() || !form.unit.trim()) { setMessage("Revisa el nombre, la unidad y el mínimo."); setBusy(false); return; }
-    const { error } = await supabase.rpc("edit_inventory_product", {
+    const { error } = await supabase.rpc("save_inventory_product", {
       p_id: editing, p_name: form.name.trim(), p_unit: form.unit.trim(), p_minimum: minimum,
       p_quantity: Number(form.initial), p_expected: commercial.expected, p_price: Number(commercial.price),
-      p_category: commercial.category.trim(), p_visible: commercial.visible
+      p_category: commercial.category.trim(), p_visible: commercial.visible, p_item_type: commercial.itemType
     });
     if (error) setMessage(error.message); else { setEditing(null); setForm(empty); setMessage("Datos del producto actualizados."); await load(); setTab("existencias"); }
     setBusy(false);
@@ -106,8 +111,8 @@ export default function InventoryAdmin({ staff = false }: { staff?: boolean }) {
     else { setMessage("Producto eliminado del inventario y de las opciones de venta."); await load(); }
     setBusy(false);
   };
-  const beginEdit = (item: Item) => { const product = itemCatalog(item); if (!product) { setMessage("Falta vincular este producto al catálogo."); return; } setCommercial({ price: String(product.price), category: product.category, visible: product.available, expected: Number(item.quantity) }); setEditing(item.id); setForm({ name: item.name, unit: item.unit, minimum: String(item.minimum_quantity), initial: String(item.quantity) }); setMessage(""); setTab("ajustes"); };
-  const startCreate = () => { setEditing(null); setForm(empty); setMessage(""); setTab("ajustes"); };
+  const beginEdit = (item: Item) => { const product = itemCatalog(item); if (!product) { setMessage("Falta vincular este producto al catálogo."); return; } setCommercial({ price: String(product.price), category: product.category, itemType: product.item_type, visible: product.available, expected: Number(item.quantity) }); setEditing(item.id); setForm({ name: item.name, unit: item.unit, minimum: String(item.minimum_quantity), initial: String(item.quantity) }); setMessage(""); setTab("ajustes"); };
+  const startCreate = () => { setEditing(null); setForm(empty); setCommercial({price:'0',category:'',itemType:'',visible:false,expected:0}); setMessage(""); setTab("ajustes"); };
   const itemCatalog = (item: Item) => {
     const link = requirements.find(requirement => requirement.inventory_item_id === item.id);
     return catalog.find(product => product.id === link?.catalog_item_id);
@@ -146,6 +151,9 @@ export default function InventoryAdmin({ staff = false }: { staff?: boolean }) {
       : <Boxes size={20} aria-hidden="true" className="shrink-0 text-sky-600" />;
   };
   return <div className="inventory-page mx-auto max-w-7xl text-[#071e55]">
+    {!staff && <div className="mb-5 rounded-2xl border border-sky-200 bg-white p-4 sm:flex sm:items-center sm:justify-between sm:gap-4"><div><h2 className="font-semibold">Sabores, tamaños y precios para la carta</h2><p className="mt-1 text-sm text-[#526d80]">Reúne las presentaciones de un producto y configura el precio de cada una.</p></div><button type="button" onClick={() => { setPresentationItemId(undefined); setConfiguringPresentations(true); }} className="mt-3 rounded-full bg-[#087fc7] px-5 py-3 text-sm font-semibold text-white sm:mt-0">Configurar sabores y tamaños</button></div>}
+    {!staff && catalog.some(product => product.category.toLowerCase() === 'por configurar') && <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm"><p>Hay productos anteriores sin categoría. Revisa su tipo y categoría para completar la configuración.</p><button type="button" onClick={() => { setCategory('Por configurar'); setTab('existencias'); setPage(1); }} className="mt-2 font-semibold text-[#075e99] underline">Ver productos por configurar</button></div>}
+    {configuringPresentations && !staff && <PresentationEditor items={catalog} initialItemId={presentationItemId} close={() => setConfiguringPresentations(false)} saved={async () => { await load(); if (presentationItemId) { setEditing(null); setTab('existencias'); } setMessage('Sabores, tamaños y precios guardados.'); }} />}
     <nav aria-label="Secciones de inventario" className="inventory-tabs flex gap-7 overflow-x-auto border-b border-[#c6e0ef]">{([{ id: "existencias", label: "Existencias" }, { id: "movimientos", label: "Movimientos" }, { id: "ajustes" as const, label: staff ? "Nuevo producto" : "Ajustes" }] as const).map(item => <button key={item.id} type="button" aria-pressed={tab === item.id} onClick={() => { setTab(item.id); setMessage(""); }} className={`shrink-0 border-b-2 px-1 py-3 text-sm ${tab === item.id ? "border-[#087fc7] font-medium text-[#087fc7]" : "border-transparent text-[#526d80]"}`}>{item.label}</button>)}</nav>
     {message && <p role="status" className="mt-4 text-sm text-[#087fc7]">{message}</p>}
     {tab === "existencias" && <section className="pt-5">
@@ -190,6 +198,7 @@ export default function InventoryAdmin({ staff = false }: { staff?: boolean }) {
         {movementPages > 1 && <div className="mt-4 flex items-center justify-end gap-3 text-sm"><button type="button" disabled={movementPage === 1} onClick={() => setMovementPage(n => n - 1)}>Anterior</button><span>{movementPage} / {movementPages}</span><button type="button" disabled={movementPage === movementPages} onClick={() => setMovementPage(n => n + 1)}>Siguiente</button></div>}
       </div>
     </section>}
-    {tab === "ajustes" && (!staff || !editing) && <section className="inventory-forms grid gap-8 pt-6 lg:grid-cols-2"><form onSubmit={editing ? saveDetails : create}><h3 className="mb-3 text-lg font-medium">{editing ? "Editar datos del producto" : "Agregar al inventario"}</h3><p className="mb-4 text-sm text-[#526d80]">{editing ? "Los cambios de existencia quedan registrados en Movimientos." : "Al guardar se creará el producto en el catálogo para configurar su precio."}</p><div className="inventory-fields"><label>Nombre<input required maxLength={120} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Ej. Avena 1 litro" /></label><label>Unidad<input required maxLength={30} value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })} placeholder="litro, unidad..." /></label>{<label>{editing ? "Existencia actual" : "Existencia inicial"}<input required type="number" min="0" step="0.001" value={form.initial} onChange={e => setForm({ ...form, initial: e.target.value })} /></label>}{editing && <><label>Precio<input type="number" min="0" required value={commercial.price} onChange={e => setCommercial({...commercial,price:e.target.value})}/></label><label>Categoría<input list="inventory-categories" required value={commercial.category} onChange={e=>setCommercial({...commercial,category:e.target.value})}/><datalist id="inventory-categories">{categories.map(c=><option key={c}>{c}</option>)}</datalist></label><label>Visible en carta<input type="checkbox" checked={commercial.visible} onChange={e=>setCommercial({...commercial,visible:e.target.checked})}/></label></>}<label>Existencia mínima<input required type="number" min="0" step="0.001" value={form.minimum} onChange={e => setForm({ ...form, minimum: e.target.value })} /></label></div><button className="inventory-submit" disabled={busy}>{editing ? "Guardar cambios" : "Agregar"}</button>{editing && <button type="button" onClick={startCreate} className="ml-4 text-sm text-[#087fc7] underline">Cancelar</button>}</form></section>}
+    {tab === "ajustes" && editing && !staff && <div className="mt-5 rounded-xl border border-sky-200 bg-white p-4"><strong>¿Este producto tiene otros tamaños o sabores?</strong><p className="mt-1 text-sm text-[#526d80]">Reúne sus presentaciones para mostrarlas juntas en la carta y asigna un precio a cada una. Guarda primero los cambios de este formulario.</p><button type="button" onClick={() => { const item = items.find(value => value.id === editing); const product = item && itemCatalog(item); if (product) { setPresentationItemId(product.id); setConfiguringPresentations(true); } }} className="mt-3 rounded-full border border-[#087fc7] px-4 py-2 text-sm font-semibold text-[#087fc7]">Agrupar sabores, tamaños y precios</button></div>}
+    {tab === "ajustes" && (!staff || !editing) && <section className="inventory-forms grid gap-8 pt-6 lg:grid-cols-2"><form onSubmit={editing ? saveDetails : create}><h3 className="mb-3 text-lg font-medium">{editing ? "Editar datos del producto" : "Agregar al inventario"}</h3><p className="mb-4 text-sm text-[#526d80]">{editing ? "Los cambios de existencia quedan registrados en Movimientos." : "Al guardar se creará el producto en el catálogo para configurar su precio."}</p><div className="inventory-fields"><label>Nombre<input required maxLength={120} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Ej. Avena 1 litro" /></label><label>Unidad<input required maxLength={30} value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })} placeholder="litro, unidad..." /></label>{<label>{editing ? "Existencia actual" : "Existencia inicial"}<input required type="number" min="0" step="0.001" value={form.initial} onChange={e => setForm({ ...form, initial: e.target.value })} /></label>}<label>Tipo de producto<select required value={commercial.itemType} onChange={e => setCommercial({...commercial,itemType:e.target.value as CatalogItem["item_type"]})}><option value="">Selecciona un tipo</option><option value="bebida">Bebida</option><option value="carta">Producto</option><option value="otro">Acompañante</option></select></label><label>Categoría<ProductCategorySelect value={commercial.category} onChange={value => setCommercial({...commercial,category:value})} existing={categories}/></label>{!staff && <><label>Precio ($)<input type="number" min="0" step="1" required value={commercial.price} onChange={e => setCommercial({...commercial,price:e.target.value})}/></label><label>Visible en carta<input type="checkbox" checked={commercial.visible} onChange={e => setCommercial({...commercial,visible:e.target.checked})}/></label></>}<label>Existencia mínima<input required type="number" min="0" step="0.001" value={form.minimum} onChange={e => setForm({ ...form, minimum: e.target.value })} /></label></div><button className="inventory-submit" disabled={busy}>{editing ? "Guardar cambios" : "Agregar"}</button>{editing && <button type="button" onClick={startCreate} className="ml-4 text-sm text-[#087fc7] underline">Cancelar</button>}</form></section>}
   </div>;
 }

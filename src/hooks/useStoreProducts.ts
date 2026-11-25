@@ -3,7 +3,7 @@ import { type Product } from "../data/products";
 import { supabase } from "../lib/supabase";
 
 export type StoreCategory = { id: string; name: string; description?: string; image?: string };
-type CatalogRow = { id: string; name: string; description: string; category: string; item_type: "carta" | "bebida" | "otro"; price: number; image_url: string | null; available: boolean };
+type CatalogRow = { id: string; name: string; description: string; category: string; item_type: "carta" | "bebida" | "otro"; price: number; image_url: string | null; available: boolean; family_name?: string | null; presentation_name?: string | null; flavor_name?: string | null };
 
 const normalize = (value: string) => value.trim().toLocaleLowerCase("es");
 const slug = (value: string) => normalize(value).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -42,6 +42,9 @@ export function useStoreProducts() {
         category: "frutafresh",
         categoryId: `${row.item_type}-${slug(row.category)}`,
         name: row.name,
+        familyName: row.family_name ?? undefined,
+        presentationName: row.presentation_name ?? undefined,
+        flavorName: row.flavor_name ?? undefined,
         description: row.description,
         image: row.image_url ?? undefined,
         disponible: row.available && row.price > 0,

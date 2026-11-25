@@ -9,6 +9,9 @@ type BaseProduct = {
   menuChoices?: { soup?: string; side?: string; protein?: string; special?: string };
   category: Category;
   categoryId?: string;
+  familyName?: string;
+  presentationName?: string;
+  flavorName?: string;
   name: string;
   description: string;
   badge?: string;

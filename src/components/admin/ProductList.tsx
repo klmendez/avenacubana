@@ -1,4 +1,4 @@
-import { catalogProductImage } from "../../lib/catalogFamilies";
+import { catalogProductImage, describe } from "../../lib/catalogFamilies";
 import { useState } from "react";
 import { Archive, Copy, Edit3, Package, Plus, Search } from "lucide-react";
 import { cop } from "../../lib/format";
@@ -34,6 +34,7 @@ export default function ProductList({items, create, edit, duplicate, archive}: P
   const pages = Math.max(1,Math.ceil(filtered.length/10));
   const current = Math.min(page,pages);
   const selected = items.find(item => item.id === detail);
+  const familyName = (item: CatalogItem) => item.family_name || describe(item.name, item.category).name;
   const actions = (item:CatalogItem) => <div className="flex gap-1 text-sky-700">{[
     {label:'Editar',icon:Edit3,run:()=>edit(item)}, {label:'Duplicar',icon:Copy,run:()=>duplicate(item)},
     {label:'Retirar',icon:Archive,run:()=>archive(item.id)}
@@ -46,7 +47,7 @@ export default function ProductList({items, create, edit, duplicate, archive}: P
     const first=selected;
     return <section><button onClick={()=>setDetail('')} className="text-sky-700">‹ Productos</button><h2 className="my-3 text-3xl font-bold">{first.name}</h2>
       <div className="grid items-center gap-5 border-y border-sky-200 py-4 sm:grid-cols-[220px_1fr]">{photo(first,true)}<div><b>{first.category}</b><p>{first.description}</p><p className="mt-3">Precio desde {cop(first.price)}</p></div></div>
-      <h3 className="my-4 text-xl font-bold">Presentaciones y precios</h3><div className="admin-data-table" tabIndex={0} role="region" aria-label="Presentaciones y precios"><table><thead><tr>{['Presentación','Precio','Visible','Acciones'].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{[selected].map(i=><tr key={i.id}><td>{parts(i.name).size}</td><td>{cop(i.price)}</td><td><Badge yes={i.available}/></td><td>{actions(i)}</td></tr>)}</tbody></table></div></section>;
+      <h3 className="my-4 text-xl font-bold">Presentaciones y precios</h3><div className="admin-data-table" tabIndex={0} role="region" aria-label="Presentaciones y precios"><table><thead><tr>{['Presentación','Precio','Visible','Acciones'].map(h=><th key={h}>{h}</th>)}</tr></thead><tbody>{items.filter(i=>fold(familyName(i)) === fold(familyName(selected))).map(i=><tr key={i.id}><td>{i.presentation_name || parts(i.name).size}</td><td>{cop(i.price)}</td><td><Badge yes={i.available}/></td><td>{actions(i)}</td></tr>)}</tbody></table></div></section>;
   }
   return <><div className="flex flex-wrap items-center gap-3"><button onClick={create} className="inline-flex items-center gap-2 rounded-full bg-sky-600 px-5 py-2.5 font-semibold text-white"><Plus size={18}/>Nuevo producto</button><label className="flex min-w-48 flex-1 items-center gap-2 rounded-full border border-sky-200 bg-white px-4"><Search size={17}/><input aria-label="Buscar producto" placeholder="Buscar producto…" className="w-full py-2.5" value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}}/></label><select aria-label="Visibilidad" className="rounded-full border border-sky-200 px-4 py-2.5" value={visibility} onChange={e=>{setVisibility(e.target.value);setPage(1)}}><option value="">Visibilidad: Todas</option><option value="visible">Visible en carta</option><option value="oculto">Oculto</option></select></div>
     <nav aria-label="Categorías de productos" className="my-3 flex gap-2 overflow-x-auto">{['',...categories].map(c=><button key={c} aria-pressed={category===c} onClick={()=>{setCategory(c);setPage(1)}} className={'shrink-0 border-b-2 px-4 py-2 '+(category===c?'border-sky-600 font-bold text-sky-700':'border-transparent')}>{c||'Todas'}</button>)}</nav>
